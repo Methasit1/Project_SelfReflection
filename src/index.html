@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moooood</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-[#FDFBF7] w-screen h-screen flex items-center justify-center overflow-hidden">
+
+    <!-- โลโก้ตรงกลางพร้อม Animation หายใจ (Pulse) -->
+    <div id="loadingScreen" class="fixed inset-0 bg-[#FDFBF7] z-50 flex items-center justify-center transition-opacity duration-700 ease-in-out">
+        <img src="/image/logo.png" alt="Moooood Logo" class="w-[990px] h-auto animate-pulse">
+    </div>
+
+    <script>
+        // เปลี่ยนไปยังหน้าลงทะเบียนอัตโนมัติหลังผ่านไป 2.5 วินาที
+        setTimeout(() => {
+            window.location.href = 'register.html'; 
+        }, 2500);
+    </script>
+</body>
+</html>
