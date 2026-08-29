@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>hobby_Self-Reflection</title>
+    <link href="./output.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: "Noto Sans Thai", sans-serif;
+            background-color: #FDFBF7;
+        }
+
+        .figma-shadow {
+            box-shadow: 0px 0px 27px 20px rgba(0, 0, 0, 0.25);
+        }
+    </style>
+</head>
+
+<body class="bg-[url(./image/background.png)] w-screen h-screen">
+    <div class="flex bg-black/30 w-screen h-screen backdrop-blur-2xl items-center justify-center p-15">
+        <!-- px-24 ช่วยควบคุมระยะห่างขอบซ้าย-ขวาภายในกรอบขาว -->
+        <div class="relative bg-white w-full h-full rounded-4xl figma-shadow overflow-hidden flex items-center justify-between px-24">
+            
+            <!-- 1. รูป Mood มุมขวาบน -->
+            <img src="./image/mood03.png" alt="mood-bg" class="absolute size-[480px] -right-30 -top-40 object-contain pointer-events-none z-0" />
+
+            <!-- 2. Form (กว้างเต็มกรอบ ดันข้อความไปซ้ายสุด ดันอินพุตไปขวาสุด) -->
+            <form id="hobbyForm" class="relative z-10 w-full flex items-center justify-between gap-12">
+                
+                <!-- ข้อความฝั่งซ้าย -->
+                <h1 class="text-[74px] font-bold text-black whitespace-nowrap">
+                    <span id="userAlias">คุณ</span>, งานอดิเรกของคุณคือ
+                </h1>
+
+                <!-- กลุ่มฝั่งขวา (ขยายความกว้าง w-[550px] ทำให้เส้นใต้ Input ยาวขึ้น) -->
+                <div class="flex flex-col items-center w-[550px] mt-20">
+                    
+                    <!-- ช่อง Input ขยายยาวเต็ม 550px -->
+                    <div class="relative w-full mt-36">
+                        <input id="hobby" name="hobby" type="text" placeholder="" maxlength="30" required
+                            class="border-b-3 border-black text-5xl font-bold font-notosans focus:outline-none w-full pr-12 pl-8 bg-transparent">
+                        
+                        <!-- ปุ่มล้างข้อความ (X) -->
+                        <button type="button" id="clearBtn" title="ล้างข้อความ"
+                            class="absolute right-0 bottom-3 text-black/40 hover:text-black focus:outline-none hidden transition-colors">
+                            <i class="fa-solid fa-circle-xmark text-3xl mb-4"></i>
+                        </button>
+                        
+                        <!-- ตัวนับจำนวนอักษร -->
+                        <div id="charCounter" class="absolute left-2 -bottom-9 text-xl font-semibold text-gray-400 hidden">
+                            0/30
+                        </div>
+                    </div>
+
+                    <!-- ปุ่ม Next (จัดวางกึ่งกลางใต้เส้น Input) -->
+                    <button type="submit" id="submitbtn" title="Next" 
+                        class="bg-black text-white text-2xl font-bold py-8 mt-36 w-[400px] rounded-full hover:bg-gray-800 active:scale-95 transition-all shadow-md cursor-pointer">
+                        Next
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+    <script src="./hobby.js"></script>
+</body>
+
+</html>
