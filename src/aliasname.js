@@ -65,8 +65,11 @@ aliasForm.addEventListener('submit', async (e) => {
 
         alert('✅ บันทึกนามแฝงเรียบร้อยแล้ว!');
 
-        // เปลี่ยนไปยังหน้าถัดไป (เช่น หน้าหลัก หรือหน้าถัดไปในโฟลว์)
-        window.location.href = 'nextpage.html'; 
+        // 💡 เพิ่มบรรทัดนี้: ฝากชื่อนามแฝงไว้ใช้ในหน้าถัดไป
+        localStorage.setItem('userAlias', aliasName);
+
+        // เปลี่ยนไปหน้าเลือกเพศ
+        window.location.href = 'gender.html';
 
     } catch (error) {
         console.error('Update Error:', error.message);

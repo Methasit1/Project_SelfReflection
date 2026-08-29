@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>gender_Self-Reflection</title>
+    <link href="./output.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: "Noto Sans Thai", sans-serif;
+            background-color: #FDFBF7;
+        }
+
+        .figma-shadow {
+            box-shadow: 0px 0px 27px 20px rgba(0, 0, 0, 0.25);
+            /* ก๊อปปี้จาก Figma มาวางตรงนี้ */
+        }
+    </style>
+</head>
+
+<body class="bg-[url(./image/background.png)] w-screen h-screen">
+    <div class="flex bg-black/30 w-screen h-screen backdrop-blur-2xl items-center justify-center p-15">
+        <div class="relative flex flex-col items-center justify-center gap-10 bg-white w-full h-full rounded-4xl figma-shadow overflow-hidden py-30 px-10">
+
+            <!-- หัวเรื่องหน้าเลือกเพศ -->
+            <h1 class="text-[74px] font-bold text-black text-center">
+                <span id="userAlias">aliasname</span>, เพศของคุณคือ
+            </h1>
+
+            <!--gender selected-->
+            <div class="flex h-[400px] w-full justify-center items-center gap-8">
+                <!--Male-->
+                <button type="button" title="male" id="malebtn" data-gender="Male"
+                    class="gender-btn bg-white size-[367px] shadow-[0_0_20px_rgba(0,0,0,0.35)] rounded-4xl flex flex-col items-center justify-center gap-4 border-4 border-transparent hover:scale-105 transition-all cursor-pointer">
+                    <img src="./image/man.png" alt="ชาย" class="size-44 object-contain pointer-events-none "/>
+                    <span class="text-[56px] font-bold text-black">ชาย</span>
+                </button>
+
+                <!--Female-->
+                <button type="button" title="female" id="femalebtn" data-gender="Female"
+                    class="gender-btn bg-white size-[367px] shadow-[0_0_20px_rgba(0,0,0,0.35)] rounded-4xl flex flex-col items-center justify-center gap-4 border-4 border-transparent hover:scale-105 transition-all cursor-pointer">
+                    <img src="./image/woman.png" alt="หญิง" class="size-44 object-contain pointer-events-none" />
+                    <span class="text-[56px] font-bold text-black">หญิง</span>
+                </button>
+
+                <!--ไม่ระบุ-->
+                <button type="button" title="none" id="nonebtn" data-gender="None"
+                    class="gender-btn bg-white size-[367px] shadow-[0_0_20px_rgba(0,0,0,0.35)] rounded-4xl flex flex-col items-center justify-center gap-4 border-4 border-transparent hover:scale-105 transition-all cursor-pointer">
+                    <img src="./image/LGBT.png" alt="ไม่ระบุ" class="size-44 object-contain pointer-events-none" />
+                    <span class="text-[56px] font-bold text-black">ไม่ระบุ</span>
+                </button>
+            </div>
+
+            <!--button Next-->
+            <button type="button" id="submitbtn" title="Next" 
+            class="bg-black text-white text-2xl font-bold py-8 px-5 w-[400px] rounded-full hover:bg-gray-800 active:scale-95 transition-all shadow-md cursor-pointer">
+                Next
+            </button>
+
+        </div>
+    </div>
+
+    <script src="./gender.js"></script>
+</body>
