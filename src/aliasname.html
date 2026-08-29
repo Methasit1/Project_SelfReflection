@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>register_Self-Reflection</title>
+    <link href="./output.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: "Noto Sans Thai", sans-serif;
+            background-color: #FDFBF7;
+        }
+
+        .figma-shadow {
+            box-shadow: 0px 0px 27px 20px rgba(0, 0, 0, 0.25);
+            /* ก๊อปปี้จาก Figma มาวางตรงนี้ */
+        }
+    </style>
+</head>
+
+<body class="bg-[url(./image/background.png)] w-screen h-screen">
+    <div class="bg-black/30 w-screen h-screen backdrop-blur-2xl items-center justify-center p-15">
+        <div class="relative bg-white w-full h-full rounded-4xl figma-shadow overflow-hidden">
+            <img src="./image/mood01.png" alt="mood-1" class="absolute size-[500px] -left-20 -top-32 rotate-[-45deg] object-contain pointer-events-none z-0" />
+
+            <!-- ข้อความฝั่งซ้าย -->
+            <div class="absolute left-52 top-1/2 -translate-y-1/2 z-10 pointer-events-none">
+                <h1 class="text-[74px] font-bold text-black">เราเรียกคุณว่าอะไร ?</h1>
+            </div>
+
+            <!--Form ฝั่งขวา-->
+            <div class="absolute top-1/2 -translate-y-7 right-32 w-full max-w-[550px] z-10 mr-10">
+                <form class="relative w-full flex flex-col items-center" id="aliasForm">
+                    <div class="relative w-full mb-20">
+                        <input id="aliasname" name="aliasname" type="text" placeholder="" maxlength="20"
+                            class="border-b-3 text-5xl font-bold font-notosans focus:outline-none w-full pr-10 pl-5">
+                        <!-- ปุ่มไอคอน (X) สำหรับกดล้างข้อความ -->
+                        <button type="button" id="clearBtn" title="ล้างข้อความ"
+                            class="absolute right-0 bottom-3 text-black/50 hover:text-gray-600 focus:outline-none hidden transition-colors">
+                            <!-- ใช้ Font Awesome Icon -->
+                            <i class="fa-solid fa-circle-xmark text-3xl mb-3"></i>
+                        </button>
+                        <!-- ตัวนับจำนวนอักษร (แสดงใต้เส้นขอบล่าง) -->
+                        <div id="charCounter"
+                            class="absolute left-5 -bottom-9 text-xl font-semibold text-gray-400 hidden">
+                            0/20
+                        </div>
+                    </div>  
+                    <!-- ปุ่ม Submit (Next) ทรงแคปซูล -->
+                    <button type="submit" id="submitbtn" title="Next" class="bg-black text-white text-2xl font-bold py-8 px-5 mt-16 w-[400px] rounded-full hover:bg-gray-800 active:scale-95 transition-all shadow-md">
+                        Next
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="./aliasname.js"></script>
+</body>
+
+</html>
