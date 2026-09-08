@@ -15,6 +15,7 @@
     --default-font-family: var(--font-sans);
     --default-mono-font-family: var(--font-mono);
     --font-notosans: "Noto Sans Thai", sans-serif;
+    --bg-figmagreen: #A8D5BA ;
   }
 }
 @layer base {

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to_Self-Reflection</title>
+    <link href="./output.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: "Noto Sans Thai", sans-serif;
+            background-color: #FDFBF7;
+        }
+
+        .figma-shadow {
+            box-shadow: 0px 0px 27px 20px rgba(0, 0, 0, 0.25);
+        }
+    </style>
+</head>
+
+<body class="bg-[url(./image/background.png)] w-screen h-screen">
+    <div class="flex bg-black/30 w-screen h-screen backdrop-blur-2xl items-center justify-center p-15">
+        <!-- px-24 ช่วยควบคุมระยะห่างขอบซ้าย-ขวาภายในกรอบขาว -->
+        <div class="relative bg-white w-full h-full rounded-4xl figma-shadow overflow-hidden flex justify-between items-center px-40 pt-20">
+            
+            <!-- 1. รูป Mood กลางบน -->
+            <img src="./image/mood02.png" alt="mood-bg" class="absolute size-[480px] left-1/2 -translate-x-1/2 -top-28 object-contain pointer-events-none z-0" />
+
+            <!-- 2. ข้อความฝั่งซ้าย (คุม max-w ป้องกันไม่ให้ดันปุ่มล้นจอ) -->
+            <div class="flex flex-col max-w-[1000px] mt-36 z-10">
+                <h1 class="text-[74px] font-bold text-black mb-4 leading-tight">
+                    เรายินดีที่คุณอยู่ที่นี่, <span id="userAlias" class="inline-block max-w-[450px] truncate align-bottom">คุณ</span>
+                </h1>
+                <p class="text-[32px] font-normal text-black leading-normal">
+                    เราจะช่วยคุณบันทึกอารมณ์ และประสบการณ์ผ่านการบันทึก<br>
+                    พร้อมคำถามการตั้งคำถามสะท้อนคิด (Self-Reflection Questions)<br>
+                    ช่วยให้คุณเข้าใจตัวเอง จัดการอารมณ์ และค้นพบเป้าหมายชีวิต
+                </p>
+            </div>
+
+            <button id="startBtn" type="button" title="เริ่มต้น" class="flex items-center justify-center text-3xl font-extrabold text-black w-[450px] h-[100px] shrink-0 rounded-full bg-[#A8D5BA] hover:brightness-95 active:scale-95 transition-all shadow-md cursor-pointer z-10">
+                start
+            </button>
+
+        </div>
+    </div>
+
+    <script src="./welcome.js"></script>
+</body>
+
+</html>

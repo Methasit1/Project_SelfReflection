@@ -3,9 +3,15 @@ const supabaseUrl = 'https://srwjzmtulcuneuqinpgx.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNyd2p6bXR1bGN1bmV1cWlucGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyODc2NjEsImV4cCI6MjEwMjg2MzY2MX0.itJlKOgtoewJpvqhImfLzc5XLlp9lHQuESDTRM2qjYI';
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-// 2. ดึงค่าจาก localStorage
+// 2. ดึงข้อมูลผู้ใช้จาก localStorage
 const userEmail = localStorage.getItem('userEmail');
 const userAlias = localStorage.getItem('userAlias');
+
+// ป้องกันกรณีเข้าหน้านี้โดยไม่ได้ผ่านขั้นตอนก่อนหน้า
+if (!userEmail) {
+    alert('❌ ไม่พบข้อมูลการลงทะเบียน กรุณาเริ่มต้นใหม่');
+    window.location.href = 'register.html';
+}
 
 if (userAlias) {
     document.getElementById('userAlias').textContent = userAlias;
@@ -42,7 +48,10 @@ hobbyForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const hobbyValue = hobbyInput.value.trim();
 
-    if (!hobbyValue) return;
+    if (!hobbyValue) {
+        alert('❌ กรุณากรอกงานอดิเรกของคุณด้วยครับ');
+        return;
+    }
 
     try {
         const { error } = await supabaseClient
@@ -53,7 +62,8 @@ hobbyForm.addEventListener('submit', async (e) => {
         if (error) throw error;
 
         localStorage.setItem('userHobby', hobbyValue);
-        window.location.href = 'nextpage.html';
+        alert('✅ บันทึกงานอดิเรกเรียบร้อยแล้ว!');
+        window.location.href = 'welcome.html';
 
     } catch (error) {
         console.error('Update Hobby Error:', error.message);

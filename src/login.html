@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log in_Self-Reflection</title>
+    <link href="./output.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: "Noto Sans Thai", sans-serif;
+            background-color: #FDFBF7;
+        }
+
+        .figma-shadow {
+            box-shadow: 0px 0px 27px 20px rgba(0, 0, 0, 0.25);
+        }
+        .font-vietnam {
+            font-family: "Be Vietnam Pro", sans-serif;
+        }
+
+        .font-noto {
+            font-family: "Noto Sans Thai", sans-serif;
+        }
+    </style>
+</head>
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log in_Self-Reflection</title>
+    <link href="./output.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: "Noto Sans Thai", sans-serif;
+            background-color: #FDFBF7;
+        }
+    </style>
+</head>
+
+<body class="relative bg-[url(./image/background.png)] w-screen h-screen flex overflow-hidden">
+    <!--พื้นหลังขาวดำ-->
+    <div class="absolute inset-0 bg-linear-to-r from-white from-50% via-[#DADADA]/50 via-[53%] to-black/25 to-100% backdrop-blur-lg z-0"></div>
+    <!--ข้อมูล ซ้าย ขวา-->
+    <div class="relative z-10 w-full h-full flex">
+
+        <!--ข้อความฝั่งซ้าย-->
+        <div class="w-1/2 pl-20 pt-40">
+            <!--Headmessage-->
+            <div class="text-[120px] font-extrabold font-vietnam leading-none mb-10">Hi , this is<br>
+                <img alt="MOOD Logo" src="./image/logo.png" class="w-[617px] h-auto">
+            </div>
+            <!--text-->
+            <p class="font-medium font-noto text-[32px] text-black/50 leading-11">
+                สวัสดี เราจะช่วยคุณบันทึกอารมณ์ และประสบการณ์ผ่านการบันทึก <br>
+                พร้อมคำถามการตั้งคำถามสะท้อนคิด (Self-Reflection Questions)<br>
+                ช่วยให้คุณเข้าใจตัวเอง จัดการอารมณ์ และค้นพบเป้าหมายชีวิต
+            </p>
+        </div>
+
+        <!--ข้อความฝั่งขวา-->
+        <div class="w-1/2 flex items-center justify-center">
+            <!--Card login-->
+            <div class="bg-white w-full max-w-[800px] h-[970px] rounded-4xl shadow-[0_0_27px_rgba(0,0,0,0.25)] flex flex-col gap-10 p-20 pt-24">
+                <div class="flex text-[72px] font-extrabold font-vietnam justify-center">Log in</div>
+                <div class="flex font-medium text-[32px] font-noto text-black/50 justify-center">เข้าสู่ระบบ</div>
+
+                <!--Form email&Password-->
+                <form id="loginForm" class="flex flex-col gap-10">
+                    <!--Email-->
+                    <div class="flex flex-col gap-6">
+                        <label for="emailInput" class="text-[#717973] font-normal text-2xl">Email</label>
+                        <input id="emailInput" type="email" required class="border-b-[3px] border-black bg-transparent focus:outline-none text-4xl px-6 mt-2 pb-2">
+                    </div>
+
+                    <!--Password-->
+                    <div class="flex flex-col gap-6">
+                        <label for="passwordInput" class="text-[#717973] font-normal text-2xl">Password</label>
+                        <input id="passwordInput" type="password" required class="border-b-[3px] border-black bg-transparent focus:outline-none text-4xl px-6 mt-2 pb-2">
+                    </div>
+
+                    <!--Submit Button-->
+                    <div class="flex mt-5 justify-center">
+                        <button id="loginBtn" type="submit" 
+                            class="w-full max-w-[450px] h-[100px] bg-[#EBE2C8] rounded-full text-2xl font-extrabold font-vietnam hover:bg-[#EBE2C8]/80 active:scale-95 transition-all shadow-md cursor-pointer">
+                            Log in
+                        </button>
+                    </div>
+                </form>
+
+                <!--want to register?-->
+                <div class="flex text-2xl font-noto font-normal text-[#717973] justify-center mt-10">Don’t have an account ?  
+                    <span class="font-extrabold text-[#3D6751] ml-3 hover:text-[#3D6751]/80 hover:underline cursor-pointer" id="Signupbtn">Sign up</span>
+                </div>
+                
+            </div>
+        </div>
+
+    </div>
+    <script src="./login.js"></script>
+</body>
+
+</html>
