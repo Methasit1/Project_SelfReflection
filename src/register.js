@@ -1,20 +1,7 @@
-// 1. ตั้งค่า Supabase (เปลี่ยน Key เป็นของคุณ)
+// 1. ตั้งค่า Supabase Client
 const supabaseUrl = 'https://srwjzmtulcuneuqinpgx.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNyd2p6bXR1bGN1bmV1cWlucGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyODc2NjEsImV4cCI6MjEwMjg2MzY2MX0.itJlKOgtoewJpvqhImfLzc5XLlp9lHQuESDTRM2qjYI'; // เปลี่ยนเป็น anon key ของคุณ
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNyd2p6bXR1bGN1bmV1cWlucGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyODc2NjEsImV4cCI6MjEwMjg2MzY2MX0.itJlKOgtoewJpvqhImfLzc5XLlp9lHQuESDTRM2qjYI';
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
-
-// 🔒 ฟังก์ชันสำหรับแปลงรหัสผ่าน (Hash เป็น SHA-256)
-async function hashPassword(password) {
-    if (!window.crypto || !window.crypto.subtle) {
-        console.warn("⚠️ ไม่รองรับ crypto.subtle (ส่งรหัสผ่านปกติ)");
-        return password;
-    }
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
 
 const registerForm = document.getElementById('registerForm');
 
@@ -25,7 +12,7 @@ registerForm.addEventListener('submit', async function (e) {
     const password = document.getElementById('password').value;
 
     // 1. ดักข้อมูลว่าง
-    if (email === "" || password === "") {
+    if (!email || !password) {
         alert('❌ กรุณากรอกข้อมูลให้ครบถ้วน');
         return;
     }
@@ -46,39 +33,54 @@ registerForm.addEventListener('submit', async function (e) {
     }
 
     try {
-        // เช็กอีเมลซ้ำใน Supabase
-        const { data: existingUsers, error: checkError } = await supabaseClient
-            .from('User')
-            .select('email')
-            .eq('email', email);
+        // 4. สมัครสมาชิกผ่าน Supabase Auth (แปลงรหัสผ่านให้อัตโนมัติ)
+        const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+            email: email,
+            password: password,
+        });
 
-        if (checkError) throw checkError;
-
-        if (existingUsers.length > 0) {
-            alert('❌ อีเมลนี้ถูกใช้งานแล้ว กรุณาใช้อีเมลอื่นครับ');
+        if (authError) {
+            if (authError.message.includes('User already registered')) {
+                alert('❌ อีเมลนี้ถูกใช้งานแล้ว กรุณาใช้อีเมลอื่นครับ');
+            } else {
+                alert('เกิดข้อผิดพลาดในการลงทะเบียน: ' + authError.message);
+            }
             return;
         }
 
-        // Hash รหัสผ่านก่อนบันทึก
-        const hashedPassword = await hashPassword(password);
+        // 5. ดึง user_id ที่ Supabase Auth เจนให้ นำไปลงตาราง "User"
+        const userId = authData.user?.id;
 
-        // บันทึกลง Supabase
-        const { data: insertData, error: insertError } = await supabaseClient
-            .from('User')
-            .insert([
-                { email: email, password: hashedPassword }
-            ]);
+        if (userId) {
+            const { error: profileError } = await supabaseClient
+                .from('User')
+                .insert([
+                    { 
+                        user_id: userId, 
+                        email: email 
+                    }
+                ]);
 
-        if (insertError) throw insertError;
+            if (profileError) throw profileError;
+        }
 
-        // บันทึกอีเมลลง localStorage
+        // บันทึกข้อมูลลง localStorage สำหรับใช้ในหน้าถัดไป (aliasname.html)
         localStorage.setItem('userEmail', email);
+        localStorage.setItem('userId', userId);
 
         alert('✅ ลงทะเบียนเบื้องต้นสำเร็จ!');
         window.location.href = 'aliasname.html';
 
     } catch (error) {
-        console.error('Supabase Error:', error.message);
+        console.error('Registration Error:', error.message);
         alert('เกิดข้อผิดพลาด: ' + error.message);
     }
+});
+
+//กลับไปหน้า login
+const backBtn = document.getElementById('backBtn');
+
+backBtn.addEventListener('click', () => {
+    window.location.href = './login.html';
+
 });
