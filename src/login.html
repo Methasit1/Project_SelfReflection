@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="th">
 
 <head>
     <meta charset="UTF-8">
@@ -9,16 +9,13 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@100..900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@100..900&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: "Noto Sans Thai", sans-serif;
             background-color: #FDFBF7;
         }
 
-        .figma-shadow {
-            box-shadow: 0px 0px 27px 20px rgba(0, 0, 0, 0.25);
-        }
         .font-vietnam {
             font-family: "Be Vietnam Pro", sans-serif;
         }
@@ -29,83 +26,79 @@
     </style>
 </head>
 
-<!doctype html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Log in_Self-Reflection</title>
-    <link href="./output.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@100..900&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: "Noto Sans Thai", sans-serif;
-            background-color: #FDFBF7;
-        }
-    </style>
-</head>
-
-<body class="relative bg-[url(./image/background.png)] w-screen h-screen flex overflow-hidden">
-    <!--พื้นหลังขาวดำ-->
-    <div class="absolute inset-0 bg-linear-to-r from-white from-50% via-[#DADADA]/50 via-[53%] to-black/25 to-100% backdrop-blur-lg z-0"></div>
-    <!--ข้อมูล ซ้าย ขวา-->
+<body class="relative bg-[url(./image/background.png)] bg-cover bg-center w-screen h-screen flex overflow-hidden select-none">
+    
+    <!-- พื้นหลังไล่สีเบลอ -->
+    <div class="absolute inset-0 bg-gradient-to-r from-white from-50% via-[#DADADA]/50 via-[53%] to-black/25 to-100% backdrop-blur-lg z-0"></div>
+    
+    <!-- ข้อมูล ซ้าย-ขวา -->
     <div class="relative z-10 w-full h-full flex">
 
-        <!--ข้อความฝั่งซ้าย-->
-        <div class="w-1/2 pl-20 pt-40">
-            <!--Headmessage-->
-            <div class="text-[120px] font-extrabold font-vietnam leading-none mb-10">Hi , this is<br>
-                <img alt="MOOD Logo" src="./image/logo.png" class="w-[617px] h-auto">
+        <!-- ข้อความฝั่งซ้าย -->
+        <div class="w-1/2 pl-8 xl:pl-14 2xl:pl-20 pt-4 xl:pt-16 2xl:pt-40 flex flex-col justify-start items-start">
+            <!-- Headmessage -->
+            <div class="text-4xl xl:text-7xl 2xl:text-[120px] font-extrabold font-noto leading-none mb-4 xl:mb-6 2xl:mb-10">
+                Hi , this is<br>
+                <img alt="MOOD Logo" src="./image/logo.png" class="w-[280px] xl:w-[480px] 2xl:w-[617px] h-auto mt-2">
             </div>
-            <!--text-->
-            <p class="font-medium font-noto text-[32px] text-black/50 leading-11">
-                สวัสดี เราจะช่วยคุณบันทึกอารมณ์ และประสบการณ์ผ่านการบันทึก <br>
-                พร้อมคำถามการตั้งคำถามสะท้อนคิด (Self-Reflection Questions)<br>
+            <!-- Subtext -->
+            <p class="font-medium font-noto text-sm xl:text-2xl 2xl:text-[32px] text-black/50 leading-relaxed 2xl:leading-11">
+                สวัสดี เราจะช่วยคุณบันทึกอารมณ์ และประสบการณ์ผ่านการบันทึก <br class="hidden xl:inline">
+                พร้อมคำถามการตั้งคำถามสะท้อนคิด (Self-Reflection Questions)<br class="hidden xl:inline">
                 ช่วยให้คุณเข้าใจตัวเอง จัดการอารมณ์ และค้นพบเป้าหมายชีวิต
             </p>
         </div>
 
-        <!--ข้อความฝั่งขวา-->
-        <div class="w-1/2 flex items-center justify-center">
-            <!--Card login-->
-            <div class="bg-white w-full max-w-[800px] h-[970px] rounded-4xl shadow-[0_0_27px_rgba(0,0,0,0.25)] flex flex-col gap-10 p-20 pt-24">
-                <div class="flex text-[72px] font-extrabold font-vietnam justify-center">Log in</div>
-                <div class="flex font-medium text-[32px] font-noto text-black/50 justify-center">เข้าสู่ระบบ</div>
+        <!-- การ์ด Login ฝั่งขวา -->
+        <div class="w-1/2 flex items-center justify-center p-4 xl:p-8 2xl:p-0">
+            <div class="bg-white w-full max-w-[420px] xl:max-w-[620px] 2xl:max-w-[800px] h-auto 2xl:h-[970px] max-h-[92vh] 2xl:max-h-[95vh] rounded-3xl 2xl:rounded-4xl shadow-[0_0_27px_rgba(0,0,0,0.25)] flex flex-col justify-between 2xl:justify-start xl:gap-8 2xl:gap-10 p-5 xl:p-12 2xl:p-20 2xl:pt-24 overflow-y-auto">
+                
+                <!-- Head Title -->
+                <div class="flex flex-col items-center gap-y-2 xl:gap-y-6 2xl:gap-y-12">
+                    <div class="text-3xl xl:text-6xl 2xl:text-[72px] font-extrabold font-noto text-center">Log in</div>
+                    <div class="font-medium text-base xl:text-2xl 2xl:text-[32px] font-noto text-black/50 text-center mt-1 2xl:mt-2">เข้าสู่ระบบ</div>
+                </div>
 
-                <!--Form email&Password-->
-                <form id="loginForm" class="flex flex-col gap-10">
-                    <!--Email-->
-                    <div class="flex flex-col gap-6">
-                        <label for="emailInput" class="text-[#717973] font-normal text-2xl">Email</label>
-                        <input id="emailInput" type="email" required class="border-b-[3px] border-black bg-transparent focus:outline-none text-4xl px-6 mt-2 pb-2">
+                <!-- Form email & Password -->
+                <form id="loginForm" class="flex flex-col gap-3 xl:gap-8 2xl:gap-10 mt-3 xl:mt-5 2xl:mt-5" novalidate>
+                    <!-- Email -->
+                    <div class="flex flex-col">
+                        <label for="emailInput" class="text-[#717973] font-normal text-base lg:text-xl 2xl:text-2xl xl:mb-5">Email</label>
+                        <input id="emailInput" type="email" required 
+                            class="border-b-2 2xl:border-b-[3px] border-black bg-transparent focus:outline-none text-lg xl:text-3xl 2xl:text-2xl px-2 xl:px-4 2xl:px-6 pb-1 2xl:pb-2">
+                        <!-- ข้อความแสดงข้อผิดพลาด Email -->
+                        <p id="emailError" class="text-red-500 font-medium text-xs xl:text-base 2xl:text-xl font-noto hidden mt-1"></p>
                     </div>
 
-                    <!--Password-->
-                    <div class="flex flex-col gap-6">
-                        <label for="passwordInput" class="text-[#717973] font-normal text-2xl">Password</label>
-                        <input id="passwordInput" type="password" required class="border-b-[3px] border-black bg-transparent focus:outline-none text-4xl px-6 mt-2 pb-2">
+                    <!-- Password -->
+                    <div class="flex flex-col">
+                        <label for="passwordInput" class="text-[#717973] font-normal text-base xl:text-xl 2xl:text-2xl xl:mb-5">Password</label>
+                        <input id="passwordInput" type="password" required 
+                            class="border-b-2 2xl:border-b-[3px] border-black bg-transparent focus:outline-none text-lg xl:text-3xl 2xl:text-2xl px-2 xl:px-4 2xl:px-6 pb-1 2xl:pb-2">
+                        <!-- ข้อความแสดงข้อผิดพลาด Password -->
+                        <p id="passwordError" class="text-red-500 font-medium text-xs xl:text-base 2xl:text-xl font-noto hidden mt-1"></p>
                     </div>
 
-                    <!--Submit Button-->
-                    <div class="flex mt-5 justify-center">
+                    <!-- Submit Button -->
+                    <div class="flex mt-2 2xl:mt-5 justify-center">
                         <button id="loginBtn" type="submit" 
-                            class="w-full max-w-[450px] h-[100px] bg-[#EBE2C8] rounded-full text-2xl font-extrabold font-vietnam hover:bg-[#EBE2C8]/80 active:scale-95 transition-all shadow-md cursor-pointer">
+                            class="w-full max-w-[320px] xl:max-w-[380px] 2xl:max-w-[450px] h-[50px] xl:h-[75px] 2xl:h-[100px] bg-[#EBE2C8] rounded-full text-base xl:text-xl 2xl:text-2xl font-extrabold font-vietnam hover:bg-[#EBE2C8]/80 active:scale-95 transition-all shadow-md cursor-pointer">
                             Log in
                         </button>
                     </div>
                 </form>
 
-                <!--want to register?-->
-                <div class="flex text-2xl font-noto font-normal text-[#717973] justify-center mt-10">Don’t have an account ?  
-                    <span class="font-extrabold text-[#3D6751] ml-3 hover:text-[#3D6751]/80 hover:underline cursor-pointer" id="Signupbtn">Sign up</span>
+                <!-- Sign up redirect -->
+                <div class="flex text-sm xl:text-xl 2xl:text-2xl font-noto font-normal text-[#717973] justify-center mt-8">
+                    Don't have an account ?  
+                    <span class="font-extrabold text-[#3D6751] ml-2 xl:ml-3 hover:text-[#3D6751]/80 hover:underline cursor-pointer" id="Signupbtn">Sign up</span>
                 </div>
                 
             </div>
         </div>
 
     </div>
+
     <script src="./login.js"></script>
 </body>
 

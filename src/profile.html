@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - MOOD</title>
+    <link href="./output.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: "Noto Sans Thai", sans-serif;
+            background-color: #FDFBF7;
+        }
+
+        .font-vietnam {
+            font-family: "Be Vietnam Pro", sans-serif;
+        }
+
+        .font-noto {
+            font-family: "Noto Sans Thai", sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-[#FDFBF7] min-h-screen flex flex-col justify-between p-6 md:p-10 text-[#1C1C1C] select-none">
+
+    <!-- Top Navigation Bar -->
+    <header class="relative flex items-center justify-between w-full max-w-6xl mx-auto pt-2">
+        <!-- ปุ่ม ย้อนกลับ -->
+        <button id="backBtn" class="flex items-center gap-2.5 text-black/70 hover:text-black font-medium transition-all active:scale-95 cursor-pointer">
+            <div class="w-10 h-10 rounded-full border-2 border-black/70 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                </svg>
+            </div>
+            <span class="text-xl font-noto font-extrabold text-black/70">ย้อนกลับ</span>
+        </button>
+
+        <!-- โลโก้ MOOD ตรงกลาง -->
+        <div class="absolute left-1/2 -translate-x-1/2">
+            <img src="./image/logo.png" alt="MOOD Logo" class="h-8 xl:h-10 w-auto">
+        </div>
+
+        <div></div>
+    </header>
+
+    <!-- Main Profile Content -->
+    <main class="w-full max-w-5xl mx-auto my-auto py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-12 items-center">
+            
+            <!-- ฝั่งซ้าย: Profile Picture & History Button -->
+            <div class="lg:col-span-5 flex flex-col items-center justify-center gap-8">
+                <!-- Profile Avatar Circle -->
+                <div class="w-64 h-64 xl:w-80 xl:h-80 rounded-full border-4 border-white shadow-[0_6px_30px_rgba(0,0,0,0.08)] overflow-hidden bg-white flex items-center justify-center">
+                    <img id="avatarImg" src="./image/avatar.png" alt="Profile Picture" class="w-full h-full object-cover">
+                </div>
+
+                <!-- History of Emotions Button -->
+                <button id="historyBtn" class="bg-white hover:bg-gray-50 text-black font-extrabold font-vietnam px-8 py-3.5 rounded-full shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-black/5 transition-all active:scale-95 cursor-pointer text-base xl:text-lg">
+                    History of Emotions
+                </button>
+            </div>
+
+            <!-- ฝั่งขวา: ข้อมูลผู้ใช้ & สถิติ -->
+            <div class="lg:col-span-7 flex flex-col gap-4 xl:gap-5">
+                
+                <!-- Row 1: HI,Mo & ออกจากระบบ -->
+                <div class="flex items-center justify-between mb-1">
+                    <h1 class="text-5xl xl:text-6xl font-extrabold font-vietnam tracking-tight">HI,<span id="usernameText">Mo</span></h1>
+                    
+                    <!-- Logout Button -->
+                    <button id="logoutBtn" class="flex items-center gap-2 bg-[#D98080] hover:bg-[#c86f6f] text-white px-5 py-2.5 rounded-full shadow-md font-noto font-bold transition-all active:scale-95 cursor-pointer text-base xl:text-lg">
+                        <span>ออกจากระบบ</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l3 3m0 0-3 3m3-3H2.25" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Row 2: Email Card -->
+                <div class="bg-white rounded-3xl p-5 xl:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.05)] flex items-center gap-5 border border-black/5">
+                    <div class="w-8 h-8 flex items-center justify-center font-black text-2xl font-vietnam">
+                        M
+                    </div>
+                    <span id="emailText" class="text-lg xl:text-2xl font-bold font-vietnam tracking-wide text-black/90 truncate">
+                        moooooooooood@gmail.com
+                    </span>
+                </div>
+
+                <!-- Row 3: เพศ & กิจกรรม/งานอดิเรก -->
+                <div class="grid grid-cols-12 gap-4">
+                    <!-- เพศ -->
+                    <div class="col-span-4 bg-white rounded-3xl p-5 xl:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.05)] text-center font-bold font-noto text-lg xl:text-xl border border-black/5 flex items-center justify-center">
+                        <span id="genderText">ชาย</span>
+                    </div>
+                    <!-- งานอดิเรก -->
+                    <div class="col-span-8 bg-white rounded-3xl p-5 xl:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.05)] text-center font-bold font-noto text-lg xl:text-xl border border-black/5 flex items-center justify-center truncate">
+                        <span id="hobbiesText">ร้องเพลง เต้น ทำงาน</span>
+                    </div>
+                </div>
+
+                <!-- Row 4: สถิติจำนวน Mood & จำนวนวันที่บันทึก -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- สถิติ Mood ทั้งหมด -->
+                    <div class="bg-white rounded-3xl p-5 xl:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.05)] flex items-center gap-4 border border-black/5">
+                        <div class="w-14 h-14 rounded-full bg-[#EBE2C8] flex items-center justify-center shrink-0">
+                            <!-- Mood Icon -->
+                            <div class="w-9 h-9 rounded-full bg-[#E2D8B9] flex items-center justify-center text-xs font-bold text-black/70">
+                                •_•
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-xs xl:text-sm font-bold font-noto text-black/60">ได้บันทึกอารมณ์ไปแล้ว</span>
+                            <div class="text-lg xl:text-xl font-bold font-noto text-black">
+                                <span id="totalMoodText" class="text-2xl xl:text-3xl font-extrabold font-vietnam">365</span> mood
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- สถิติจำนวนวันในเดือนนี้ -->
+                    <div class="bg-white rounded-3xl p-5 xl:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.05)] flex items-center gap-4 border border-black/5">
+                        <div class="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center shrink-0">
+                            <!-- Calendar Icon -->
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-7 h-7 text-black/80">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 9v7.5" />
+                            </svg>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-xs xl:text-sm font-bold font-noto text-black/60">ได้บันทึกในเดือนนี้</span>
+                            <div class="text-lg xl:text-xl font-bold font-noto text-black">
+                                <span id="monthlyCountText" class="text-2xl xl:text-3xl font-extrabold font-vietnam">2/30</span> วัน
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- JS สำหรับปุ่มย้อนกลับ / Logout -->
+    <script>
+        document.getElementById('backBtn').addEventListener('click', () => {
+            window.history.back();
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            if (confirm('คุณต้องการออกจากระบบใช่หรือไม่?')) {
+                // หากใช้ Supabase Auth:
+                // await supabaseClient.auth.signOut();
+                window.location.href = './login.html';
+            }
+        });
+    </script>
+</body>
+
+</html>
