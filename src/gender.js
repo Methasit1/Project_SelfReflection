@@ -6,6 +6,13 @@ const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 // 2. ดึงข้อมูลผู้ใช้จาก localStorage
 const userEmail = localStorage.getItem('userEmail');
 const userAlias = localStorage.getItem('userAlias');
+const backBtn = document.getElementById('backBtn');
+// ปุ่มย้อนกลับ
+if (backBtn) {
+    backBtn.addEventListener('click', () => {
+        window.history.back();
+    });
+}
 
 // ป้องกันกรณีเข้าหน้านี้โดยไม่ได้ผ่านขั้นตอนก่อนหน้า
 if (!userEmail) {

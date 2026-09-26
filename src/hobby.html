@@ -19,11 +19,36 @@
         .figma-shadow {
             box-shadow: 0px 0px 27px 20px rgba(0, 0, 0, 0.25);
         }
+
+        /* ---------------------------------------------------- */
+        /* CSS ปรับความพอดีเฉพาะตอน "ไม่ได้กด F11" (ความสูงจอน้อยกว่า 1000px) */
+        /* เมื่อกด F11 ความสูงจะเป็น 1080px จะใช้ขนาดดั้งเดิมทันที */
+        /* ---------------------------------------------------- */
+        @media (max-height: 1000px) {
+            .outer-padding {
+                padding: 2rem !important; /* ลด padding นอกสุด */
+            }
+            .heading-title {
+                font-size: 70px !important; /* ย่อขนาดหัวเรื่องเล็กน้อย */
+            }
+            .right-container {
+                margin-top: 1rem !important;
+            }
+            .input-wrapper {
+                margin-top: 12rem !important; /* ลดระยะห่างเหนือช่อง Input */
+            }
+            .submit-btn {
+                margin-top: 2.5rem !important; /* ลดระยะห่างเหนือปุ่ม Next */
+            }
+            .back-btn {
+                margin-top: 1.5rem !important; /* ลดระยะห่างเหนือปุ่มย้อนกลับ */
+            }
+        }
     </style>
 </head>
 
 <body class="bg-[url(./image/background.png)] w-screen h-screen">
-    <div class="flex bg-black/30 w-screen h-screen backdrop-blur-2xl items-center justify-center p-15">
+    <div class="flex bg-black/30 w-screen h-screen backdrop-blur-2xl items-center justify-center p-15 outer-padding">
         <!-- px-24 ช่วยควบคุมระยะห่างขอบซ้าย-ขวาภายในกรอบขาว -->
         <div class="relative bg-white w-full h-full rounded-4xl figma-shadow overflow-hidden flex items-center justify-between px-24">
             
@@ -34,15 +59,15 @@
             <form id="hobbyForm" class="relative z-10 w-full flex items-center justify-between gap-12">
                 
                 <!-- ข้อความฝั่งซ้าย -->
-                <h1 class="text-[74px] font-bold text-black whitespace-nowrap">
+                <h1 class="text-[74px] font-bold text-black whitespace-nowrap heading-title">
                     <span id="userAlias">คุณ</span>, งานอดิเรกของคุณคือ
                 </h1>
 
                 <!-- กลุ่มฝั่งขวา (ขยายความกว้าง w-[550px] ทำให้เส้นใต้ Input ยาวขึ้น) -->
-                <div class="flex flex-col items-center w-[550px] mt-20">
+                <div class="flex flex-col items-center w-[550px] mt-20 right-container">
                     
                     <!-- ช่อง Input ขยายยาวเต็ม 550px -->
-                    <div class="relative w-full mt-36">
+                    <div class="relative w-full mt-72 input-wrapper">
                         <input id="hobby" name="hobby" type="text" placeholder="" maxlength="30"
                             class="border-b-3 border-black text-5xl font-bold font-notosans focus:outline-none w-full pr-12 pl-8 bg-transparent">
                         
@@ -60,8 +85,20 @@
 
                     <!-- ปุ่ม Next (จัดวางกึ่งกลางใต้เส้น Input) -->
                     <button type="submit" id="submitbtn" title="Next" 
-                        class="bg-black text-white text-2xl font-bold py-8 mt-36 w-[400px] rounded-full hover:bg-gray-800 active:scale-95 transition-all shadow-md cursor-pointer">
+                        class="bg-[#E8DFC5] text-black text-2xl font-bold py-8 mt-36 w-[400px] rounded-full hover:bg-[#E8DFC5]/50 active:scale-95 transition-all shadow-md cursor-pointer submit-btn">
                         Next
+                    </button>
+
+                    <!-- ปุ่มย้อนกลับ (อยู่ใต้ปุ่ม Next) -->
+                    <button id="backBtn" type="button" 
+                        class="inline-flex items-center gap-2 2xl:gap-3 text-[#717973] hover:text-black transition-all cursor-pointer group select-none mt-16 back-btn">
+                            
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" 
+                            class="w-8 h-8 xl:w-10 xl:h-10 2xl:w-12 2xl:h-12 group-hover:-translate-x-1 transition-transform">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 9L8.25 12m0 0l3 3m-3-3h7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+
+                        <span class="text-lg xl:text-2xl 2xl:text-3xl font-medium font-noto">ย้อนกลับ</span>
                     </button>
 
                 </div>
@@ -70,7 +107,6 @@
 
         </div>
     </div>
-
     <script src="./hobby.js"></script>
 </body>
 
