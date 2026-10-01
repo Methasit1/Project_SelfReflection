@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ปุ่ม Start -> ไปหน้าบันทึกอารมณ์
     if (startBtn) {
         startBtn.addEventListener('click', () => {
-            window.location.href = './mood-select.html'; // เปลี่ยนเป็นชื่อไฟล์หน้าถัดไปของคุณ
+            window.location.href = './selectmood.html'; // เปลี่ยนเป็นชื่อไฟล์หน้าถัดไปของคุณ
         });
     }
 

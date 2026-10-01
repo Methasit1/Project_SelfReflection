@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Mood - MOOD</title>
+    <!-- Tailwind CSS Browser CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        .font-vietnam {
+            font-family: "Be Vietnam Pro", sans-serif;
+        }
+
+        .font-noto {
+            font-family: "Noto Sans Thai", sans-serif;
+        }
+
+        /* เอฟเฟกต์การเลือกอารมณ์ */
+        .mood-item {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .mood-item:hover {
+            transform: translateY(-6px) scale(1.04);
+        }
+
+        .mood-item.selected {
+            transform: scale(1.1);
+            filter: drop-shadow(0px 10px 15px rgba(0, 0, 0, 0.15));
+        }
+
+        /* ---------------------------------------------------- */
+        /* ปรับระดับฟอนต์เมื่อความสูงจอน้อยกว่า 1000px */
+        /* ---------------------------------------------------- */
+        @media (max-height: 1000px) {
+            body {
+                padding: 1.5rem !important;
+            }
+
+            .heading-title {
+                font-size: 2.5rem !important;
+                line-height: 1.2 !important;
+            }
+
+            .heading-sub {
+                font-size: 1.25rem !important;
+                margin-top: 0.5rem !important;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-[#FBF9F8] h-screen overflow-hidden p-10 select-none font-noto space-y-14">
+
+    <!-- Header -->
+    <header class="flex justify-between items-center shrink-0">
+        <!-- ปุ่มย้อนกลับ -->
+        <button type="button" id="backBtn"
+            class="flex items-center gap-3 text-gray-700 hover:text-black transition-colors cursor-pointer text-2xl font-medium">
+            <i class="fa-regular fa-circle-left text-4xl"></i>
+            <span>ย้อนกลับ</span>
+        </button>
+
+        <!-- รูปโปรไฟล์ -->
+        <div class="size-20 bg-white rounded-full">
+            <a href="./profile.html" id="profileBtn" title="ไปหน้าโปรไฟล์"
+                class="block size-20 rounded-full overflow-hidden bg-gray-300 hover:opacity-80 transition-opacity cursor-pointer border-2 border-white shadow-sm">
+                <img id="userAvatar" src="./image/avatar.png" alt="Profile" class="w-full h-full object-cover" />
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content (ลด gap ปรับระยะห่างจากด้านบนไม่ให้ห่างมาก) -->
+    <main class="flex flex-col items-center justify-center flex-1 my-auto gap-24">
+        
+        <!-- Text Header -->
+        <div class="flex flex-col justify-center items-center text-center">
+            <h1 class="text-5xl font-extrabold text-black leading-tight heading-title">
+                Alrighty, <span id="userAlias">Aliasname</span>
+            </h1>
+            <h2 class="text-5xl font-extrabold text-black heading-title">
+                how are you doing right now
+            </h2>
+            <p class="text-3xl font-medium text-black mt-4 heading-sub">
+                ตอนนี้อารมณ์ของคุณเป็นอย่างไร
+            </p>
+        </div>
+
+        <!-- รายการอารมณ์ 5 ระดับ ขนาด 280px -->
+        <div class="flex items-center justify-center gap-10" id="moodContainer">
+            <div class="mood-item rounded-full" data-level="1" title="Very Sad">
+                <img src="./image/mood01.png" alt="Mood 1" class="size-[280px] mood-img object-contain">
+            </div>
+            <div class="mood-item rounded-full" data-level="2" title="Sad">
+                <img src="./image/mood02.png" alt="Mood 2" class="size-[280px] mood-img object-contain">
+            </div>
+            <div class="mood-item rounded-full" data-level="3" title="Neutral">
+                <img src="./image/mood03.png" alt="Mood 3" class="size-[280px] mood-img object-contain">
+            </div>
+            <div class="mood-item rounded-full" data-level="4" title="Happy">
+                <img src="./image/mood04.png" alt="Mood 4" class="size-[280px] mood-img object-contain">
+            </div>
+            <div class="mood-item rounded-full" data-level="5" title="Very Happy">
+                <img src="./image/mood05.png" alt="Mood 5" class="size-[280px] mood-img object-contain">
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer / ปุ่ม Continue (สีดำ) -->
+    <footer class="flex justify-center shrink-0 pb-2 mt-40">
+        <button type="button" id="continueBtn"
+            class="bg-black text-white text-2xl font-bold py-8 w-[400px] rounded-full hover:bg-gray-800 active:scale-95 transition-all shadow-md opacity-40 cursor-not-allowed btn-continue"
+            disabled>
+            Continue
+        </button>
+    </footer>
+
+    <!-- เรียกใช้ไฟล์ JS แยก -->
+    <script src="./selectmood.js"></script>
+</body>
+
+</html>
