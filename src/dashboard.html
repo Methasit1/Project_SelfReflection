@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - MOOD</title>
+    <link href="./output.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        .font-vietnam {
+            font-family: "Be Vietnam Pro", sans-serif;
+        }
+
+        .font-noto {
+            font-family: "Noto Sans Thai", sans-serif;
+        }
+
+        .figma-shadow {
+            box-shadow: 0px 4px 13px 0px rgba(0, 0, 0, 0.10);
+        }
+
+        /* ---------------------------------------------------- */
+        /* CSS ปรับขนาดสำหรับตอน "ยังไม่ได้กด F11" (ความสูงจอต่ำกว่า 1000px) */
+        /* ---------------------------------------------------- */
+        @media (max-height: 1000px) {
+            body {
+                padding: 1.25rem !important;
+            }
+            .main-container {
+                gap: 5rem !important; /* ย่อจาก gap-y-36 */
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-[#FBF9F8] min-h-screen p-10 select-none font-noto">
+    
+    <div class="flex flex-col justify-between gap-y-36 main-container">
+        <header class="flex justify-between items-center">
+            <div class="size-20"></div>
+            <img src="./image/logo.png" alt="MOOD Logo" class="w-[320px] h-16">
+            <div class="size-20 bg-white rounded-full">
+                <a href="./profile.html" id="profileBtn" title="ไปหน้าโปรไฟล์" 
+                class="block size-20 rounded-full overflow-hidden bg-gray-300 hover:opacity-80 transition-opacity cursor-pointer border-2 border-white shadow-sm">
+                    <img id="userAvatar" src="./image/avatar.png" alt="Profile" class="w-full h-full object-cover" />
+                </a>
+            </div>
+        </header>
+
+        <main class="flex">
+            <div class="flex w-1/2 justify-center items-center">
+                <img src="./image/mood03.png" alt="Mood Illustration" class="size-[500px]">
+            </div> 
+
+            <div class="flex flex-col w-1/2 justify-between items-center py-10 pr-10">
+                <!--Text Header-->
+                <div class="flex flex-col justify-center items-center">
+                    <h1 class="text-5xl font-extrabold text-black leading-tight">
+                        Alrighty, <span id="userAlias">Aliasname</span>
+                    </h1>
+                    <h2 class="text-5xl font-extrabold text-black">
+                        how are you doing right now
+                    </h2>
+                    <p class="text-3xl font-medium text-black mt-8">
+                        ตอนนี้อารมณ์ของคุณเป็นอย่างไร
+                    </p>
+                </div>
+
+                <!-- ปุ่ม Start -->
+                <button type="button" id="startBtn"
+                    class="mt-8 bg-black text-white text-2xl font-bold py-8 w-[450px] rounded-full hover:bg-gray-800 active:scale-95 transition-all shadow-md cursor-pointer">
+                    Start
+                </button>
+            </div>
+        </main>
+
+        <footer class="flex justify-center">
+            <button type="button" id="historyBtn"
+                class="bg-white text-black text-2xl font-extrabold py-10 w-[450px] rounded-full border border-gray-200 figma-shadow hover:bg-gray-50 active:scale-95 transition-all cursor-pointer">
+                History of Emotions
+            </button>
+        </footer>
+    </div>
+
+    <script src="./dashboard.js"></script>
+</body>
+
+</html>
