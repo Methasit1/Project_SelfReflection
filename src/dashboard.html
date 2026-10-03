@@ -24,15 +24,17 @@
             box-shadow: 0px 4px 13px 0px rgba(0, 0, 0, 0.10);
         }
 
-        /* ---------------------------------------------------- */
-        /* CSS ปรับขนาดสำหรับตอน "ยังไม่ได้กด F11" (ความสูงจอต่ำกว่า 1000px) */
-        /* ---------------------------------------------------- */
+        .card-border-shadow {
+            box-shadow: 0px 8px 20px 0px rgba(0, 0, 0, 0.08);
+        }
+
+        /* CSS ปรับขนาดสำหรับความสูงจอต่ำกว่า 1000px */
         @media (max-height: 1000px) {
             body {
                 padding: 1.25rem !important;
             }
             .main-container {
-                gap: 5rem !important; /* ย่อจาก gap-y-36 */
+                gap: 2.5rem !important;
             }
         }
     </style>
@@ -40,10 +42,11 @@
 
 <body class="bg-[#FBF9F8] min-h-screen p-10 select-none font-noto">
     
-    <div class="flex flex-col justify-between gap-y-36 main-container">
+    <div class="flex flex-col justify-between gap-y-16 main-container">
+        <!-- Header -->
         <header class="flex justify-between items-center">
             <div class="size-20"></div>
-            <img src="./image/logo.png" alt="MOOD Logo" class="w-[320px] h-16">
+            <img src="./image/logo.png" alt="MOOD Logo" class="w-[320px] h-16 object-contain">
             <div class="size-20 bg-white rounded-full">
                 <a href="./profile.html" id="profileBtn" title="ไปหน้าโปรไฟล์" 
                 class="block size-20 rounded-full overflow-hidden bg-gray-300 hover:opacity-80 transition-opacity cursor-pointer border-2 border-white shadow-sm">
@@ -52,36 +55,60 @@
             </div>
         </header>
 
-        <main class="flex">
+        <!-- Main Content -->
+        <main class="flex flex-1 items-center pt-10">
+            <!-- ฝั่งซ้าย: รูปภาพ Mood -->
             <div class="flex w-1/2 justify-center items-center">
-                <img src="./image/mood03.png" alt="Mood Illustration" class="size-[500px]">
+                <img src="./image/mood03.png" alt="Mood Illustration" class="size-[500px] object-contain">
             </div> 
 
-            <div class="flex flex-col w-1/2 justify-between items-center py-10 pr-10">
-                <!--Text Header-->
-                <div class="flex flex-col justify-center items-center">
+            <!-- ฝั่งขวา: ข้อความ + กล่องคำถามเลือกวัน (ซ่อนไว้ก่อน) + ปุ่ม Start -->
+            <div class="flex flex-col w-1/2 justify-center items-center gap-y-6 pr-10">
+                
+                <!-- Text Header -->
+                <div class="flex flex-col justify-center items-center text-center">
                     <h1 class="text-5xl font-extrabold text-black leading-tight">
                         Alrighty, <span id="userAlias">Aliasname</span>
                     </h1>
-                    <h2 class="text-5xl font-extrabold text-black">
+                    <h2 class="text-5xl font-extrabold text-black mt-1">
                         how are you doing right now
                     </h2>
-                    <p class="text-3xl font-medium text-black mt-8">
+                    <p class="text-2xl font-medium text-black mt-4">
                         ตอนนี้อารมณ์ของคุณเป็นอย่างไร
                     </p>
                 </div>
 
+                <!-- กล่องคำถามเลือกวัน (ซ่อนอยู่เริ่มต้นด้วย class 'hidden') -->
+                <div id="dateChoiceCard" class="hidden shadow-2xl flex-col gap-y-6 bg-white border-3 border-black w-3xl rounded-[36px] p-8 card-border-shadow text-center">
+                    <p class="text-3xl font-medium text-black leading-snug">
+                        ต้องการบันทึกเป็นของวันนี้หรือของวันก่อนหน้า
+                    </p>
+                    <div class="flex gap-4 justify-center items-center w-full">
+                        <!-- ปุ่มวันก่อนหน้า -->
+                        <button type="button" id="prevDayBtn" 
+                            class="bg-white text-black border border-gray-200 figma-shadow font-bold text-2xl py-6 px-6 rounded-full w-1/2 hover:scale-105 active:scale-95 transition-all cursor-pointer">
+                            วันก่อนหน้า
+                        </button>
+                        <!-- ปุ่มวันนี้ (ค่าเริ่มต้นเลือกวันนี้) -->
+                        <button type="button" id="todayBtn" 
+                            class="bg-black text-white font-bold text-2xl py-6 px-6 rounded-full w-1/2 hover:scale-105 active:scale-95 transition-all cursor-pointer">
+                            วันนี้
+                        </button>
+                    </div>
+                </div>
+
                 <!-- ปุ่ม Start -->
                 <button type="button" id="startBtn"
-                    class="mt-8 bg-black text-white text-2xl font-bold py-8 w-[450px] rounded-full hover:bg-gray-800 active:scale-95 transition-all shadow-md cursor-pointer">
+                    class="bg-black text-white text-2xl font-bold py-6 w-[450px] rounded-full hover:bg-gray-800 active:scale-95 transition-all shadow-md cursor-pointer">
                     Start
                 </button>
             </div>
         </main>
 
+        <!-- Footer -->
         <footer class="flex justify-center">
             <button type="button" id="historyBtn"
-                class="bg-white text-black text-2xl font-extrabold py-10 w-[450px] rounded-full border border-gray-200 figma-shadow hover:bg-gray-50 active:scale-95 transition-all cursor-pointer">
+                class="bg-white text-black text-2xl font-extrabold py-8 w-[450px] rounded-full border border-gray-200 figma-shadow hover:bg-gray-50 active:scale-95 transition-all cursor-pointer">
                 History of Emotions
             </button>
         </footer>

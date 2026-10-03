@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             sessionStorage.setItem('selected_mood_level', selectedMoodLevel);
 
             // ไปยังหน้าถัดไป
-            window.location.href = './mood-note.html';
+            window.location.href = './trigger.html';
         });
     }
 

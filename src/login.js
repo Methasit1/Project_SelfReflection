@@ -101,7 +101,6 @@ loginForm.addEventListener('submit', async (e) => {
         }
 
         // เข้าสู่ระบบสำเร็จ
-        alert('✅ เข้าสู่ระบบสำเร็จ!');
         window.location.href = './dashboard.html';
 
     } catch (err) {

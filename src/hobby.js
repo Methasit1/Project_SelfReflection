@@ -69,7 +69,6 @@ hobbyForm.addEventListener('submit', async (e) => {
         if (error) throw error;
 
         localStorage.setItem('userHobby', hobbyValue);
-        alert('✅ บันทึกงานอดิเรกเรียบร้อยแล้ว!');
         window.location.href = 'welcome.html';
 
     } catch (error) {

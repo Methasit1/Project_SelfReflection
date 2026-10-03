@@ -62,7 +62,6 @@ submitBtn.addEventListener('click', async () => {
             .eq('email', userEmail);
 
         if (error) throw error;
-        alert('✅ บันทึกเพศเรียบร้อยแล้ว!');
 
         // บันทึกเพศลง localStorage ชั่วคราว
         localStorage.setItem('userGender', selectedGender);

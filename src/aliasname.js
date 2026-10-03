@@ -63,8 +63,6 @@ aliasForm.addEventListener('submit', async (e) => {
 
         if (error) throw error;
 
-        alert('✅ บันทึกนามแฝงเรียบร้อยแล้ว!');
-
         // 💡 เพิ่มบรรทัดนี้: ฝากชื่อนามแฝงไว้ใช้ในหน้าถัดไป
         localStorage.setItem('userAlias', aliasName);
 
