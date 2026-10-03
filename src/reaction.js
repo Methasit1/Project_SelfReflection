@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             sessionStorage.setItem('reaction_text', reactionText);
 
             // ย้ายไปหน้าถัดไป (reflection.html)
-            window.location.href = './reflection.html';
+            window.location.href = './summary.html';
         });
     }
 

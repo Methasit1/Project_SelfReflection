@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Summary - MOOD</title>
+    <!-- Tailwind CSS Browser CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        .font-vietnam { font-family: "Be Vietnam Pro", sans-serif; }
+        .font-noto { font-family: "Noto Sans Thai", sans-serif; }
+    </style>
+</head>
+
+<body class="bg-[#F6F4EE] h-screen overflow-hidden p-10 select-none font-noto">
+
+    <!-- Header -->
+    <header class="flex justify-between">
+        <!-- ปุ่มย้อนกลับ -->
+        <button type="button" id="backBtn"
+            class="flex items-center gap-3 text-gray-700 hover:text-black transition-colors cursor-pointer text-2xl font-medium">
+            <i class="fa-regular fa-circle-left text-4xl"></i>
+            <span>ย้อนกลับ</span>
+        </button>
+        <!--logo mood-->
+        <img src="./image/logo.png" alt="MOOD Logo" class="w-[320px] h-16">
+        <!-- รูปโปรไฟล์ -->
+        <div class="size-20 bg-white rounded-full">
+            <a href="./profile.html" id="profileBtn" title="ไปหน้าโปรไฟล์"
+                class="block size-20 rounded-full overflow-hidden bg-gray-300 hover:opacity-80 transition-opacity cursor-pointer border-2 border-white shadow-sm">
+                <img id="userAvatar" src="./image/avatar.png" alt="Profile" class="w-full h-full object-cover" />
+            </a>
+        </div>
+    </header>
+
+    <!--main-->
+    <main class="flex">
+        <!--MoodImg-->
+        <div class="flex w-1/2 justify-center items-center">
+            <img src="./image/mood05.png" alt="Mood Illustration" class="size-[500px]" id="selectmood">
+        </div>
+        <!--MoodName-->
+        <div class="flex flex-col w-1/2 text-center items-center">
+            <h1 class="text-3xl font-extrabold text-black leading-tight heading-title">
+                Alrighty, <span id="userAlias">Aliasname</span>
+            </h1>
+            <h2 class="text-3xl font-extrabold text-black mt-1 heading-title">
+                how are you doing right now
+            </h2>
+            <p class="text-xl font-medium text-black mt-2 heading-sub">
+                ตอนนี้อารมณ์ของคุณเป็นอย่างไร
+            </p>
+            <h1 class="text-[100px] font-extrabold text-[#A4D1B6]">“ <span id="moodname">Good</span> ”</h1>
+            <h2 class="text-[64px] font-medium text-[#A4D1B6]"><span id="moodnamethai">อารมณ์ดี</span></h2>
+
+            <!--Y/N-->
+            <div class="bg-white border-5 w-full rounded-4xl h-auto p-8">
+                <p class="text-3xl font-medium text-black">คุณต้องการทบทวนตัวเองสำหรับวันนี้ต่อหรือไม่</p>
+                <button id="cancel" class="bg-white text-black text-2xl">ไม่เป็นไร</button>
+                <button id="yes" class="bg-black text-white text-2xl">ตกลง</button>
+            </div>
+        </div>
+    </main>
+
+    <footer></footer>
+    <!-- เรียกใช้ไฟล์ JS -->
+    <script src="./summary.js"></script>
+</body>
+
+</html>
