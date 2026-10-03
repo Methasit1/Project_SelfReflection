@@ -4,51 +4,85 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 const registerForm = document.getElementById('registerForm');
+const emailInput = document.getElementById('email');
+const passwordInput = document.getElementById('password');
+const emailError = document.getElementById('emailError');
+const passwordError = document.getElementById('passwordError');
+const backBtn = document.getElementById('backBtn');
+
+// ฟังก์ชันล้างข้อความแจ้งเตือน
+function clearErrors() {
+    emailError.textContent = '';
+    emailError.classList.add('hidden');
+    passwordError.textContent = '';
+    passwordError.classList.add('hidden');
+}
+
+// ฟังก์ชันแสดงข้อความแจ้งเตือนสีแดง
+function showError(element, message) {
+    element.textContent = message;
+    element.classList.remove('hidden');
+}
+
+// ล้างข้อความแจ้งเตือนอัตโนมัติเมื่อผู้ใช้พิมพ์แก้ไข
+emailInput.addEventListener('input', () => {
+    emailError.textContent = '';
+    emailError.classList.add('hidden');
+});
+
+passwordInput.addEventListener('input', () => {
+    passwordError.textContent = '';
+    passwordError.classList.add('hidden');
+});
 
 registerForm.addEventListener('submit', async function (e) {
     e.preventDefault();
+    clearErrors();
 
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
 
-    // 1. ดักข้อมูลว่าง
-    if (!email || !password) {
-        alert('❌ กรุณากรอกข้อมูลให้ครบถ้วน');
-        return;
-    }
+    let hasError = false;
 
+    // 1. ตรวจสอบ Email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) {
+        showError(emailError, 'กรุณากรอกอีเมล');
+        hasError = true;
+    } else if (!emailRegex.test(email)) {
+        showError(emailError, 'รูปแบบอีเมลไม่ถูกต้อง');
+        hasError = true;
+    }
+
+    // 2. ตรวจสอบ Password (อย่างน้อย 8 ตัวอักษร, มี a-z, A-Z, 0-9)
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
-
-    // 2. ดักรูปแบบอีเมล
-    if (!emailRegex.test(email)) {
-        alert('❌ กรุณากรอกรูปแบบอีเมลให้ถูกต้องครับ');
-        return;
+    if (!password) {
+        showError(passwordError, 'กรุณากรอกรหัสผ่าน');
+        hasError = true;
+    } else if (!passwordRegex.test(password)) {
+        showError(passwordError, 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร และมีตัวพิมพ์เล็ก (a-z) พิมพ์ใหญ่ (A-Z) และตัวเลข (0-9) อย่างละ 1 ตัว');
+        hasError = true;
     }
 
-    // 3. ดักรูปแบบรหัสผ่าน
-    if (!passwordRegex.test(password)) {
-        alert('❌ รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร และต้องมีตัวพิมพ์เล็ก พิมพ์ใหญ่ และตัวเลขอย่างน้อย 1 ตัวครับ');
-        return;
-    }
+    if (hasError) return;
 
     try {
-        // 4. สมัครสมาชิกผ่าน Supabase Auth (แปลงรหัสผ่านให้อัตโนมัติ)
+        // 3. สมัครสมาชิกผ่าน Supabase Auth
         const { data: authData, error: authError } = await supabaseClient.auth.signUp({
             email: email,
             password: password,
         });
 
         if (authError) {
-            if (authError.message.includes('User already registered')) {
-                alert('❌ อีเมลนี้ถูกใช้งานแล้ว กรุณาใช้อีเมลอื่นครับ');
+            if (authError.message.includes('User already registered') || authError.message.includes('already exists')) {
+                showError(emailError, 'อีเมลนี้ถูกใช้งานแล้ว กรุณาใช้อีเมลอื่น');
             } else {
-                alert('เกิดข้อผิดพลาดในการลงทะเบียน: ' + authError.message);
+                showError(emailError, 'เกิดข้อผิดพลาดในการลงทะเบียน: ' + authError.message);
             }
             return;
         }
 
-        // 5. ดึง user_id ที่ Supabase Auth เจนให้ นำไปลงตาราง "User"
+        // 4. ดึง user_id ไปบันทึกลงตาราง "User"
         const userId = authData.user?.id;
 
         if (userId) {
@@ -61,26 +95,28 @@ registerForm.addEventListener('submit', async function (e) {
                     }
                 ]);
 
-            if (profileError) throw profileError;
+            if (profileError) {
+                showError(emailError, 'เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' + profileError.message);
+                return;
+            }
         }
 
-        // บันทึกข้อมูลลง localStorage สำหรับใช้ในหน้าถัดไป (aliasname.html)
+        // บันทึกข้อมูลลง localStorage สำหรับใช้ในหน้า aliasname.html
         localStorage.setItem('userEmail', email);
         localStorage.setItem('userId', userId);
 
-        alert('✅ ลงทะเบียนเบื้องต้นสำเร็จ!');
+        // ย้ายหน้าไปยัง aliasname.html
         window.location.href = 'aliasname.html';
 
     } catch (error) {
         console.error('Registration Error:', error.message);
-        alert('เกิดข้อผิดพลาด: ' + error.message);
+        showError(emailError, 'เกิดข้อผิดพลาด: ' + error.message);
     }
 });
 
-//กลับไปหน้า login
-const backBtn = document.getElementById('backBtn');
-
-backBtn.addEventListener('click', () => {
-    window.location.href = './login.html';
-
-});
+// กลับไปหน้า login
+if (backBtn) {
+    backBtn.addEventListener('click', () => {
+        window.location.href = './login.html';
+    });
+}

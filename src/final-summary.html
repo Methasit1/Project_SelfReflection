@@ -31,12 +31,8 @@
 
     <!-- Header -->
     <header class="flex justify-between">
-        <!-- ปุ่มย้อนกลับ -->
-        <button type="button" id="backBtn"
-            class="flex items-center gap-3 text-gray-700 hover:text-black transition-colors cursor-pointer text-2xl font-medium">
-            <i class="fa-regular fa-circle-left text-4xl"></i>
-            <span>ย้อนกลับ</span>
-        </button>
+        <!-- object เปล่า -->
+        <div></div>
         <!--logo mood-->
         <img src="./image/logo.png" alt="MOOD Logo" class="w-[320px] h-16">
         <!-- รูปโปรไฟล์ -->
@@ -77,16 +73,6 @@
                     อารมณ์ดี
                 </span>
             </h1>
-
-            <!--Y/N-->
-            <div id="questionBox" class="flex flex-col gap-y-16 bg-white border-5 w-3xl rounded-4xl h-auto figma-shadow p-10">
-                <p class="text-3xl font-medium text-black">คุณต้องการทบทวนตัวเองสำหรับวันนี้ต่อหรือไม่</p>
-                <div class="flex gap-5 justify-center items-center">
-                    <button id="cancelBtn" class="bg-white text-black font-bold text-2xl figma-shadow py-8 rounded-full w-full hover:scale-105 cursor-pointer transition-all active:scale-95">ไม่เป็นไร</button>
-                    <button id="yesBtn" class="bg-black text-white font-bold text-2xl py-8 rounded-full w-full hover:scale-105 cursor-pointer transition-all active:scale-95">ตกลง</button>
-                </div>
-            </div>
-        </div>
     </main>
 
     <footer class="flex justify-center items-center mt-10 maginfooter">

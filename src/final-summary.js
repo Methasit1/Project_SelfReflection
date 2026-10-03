@@ -1,10 +1,10 @@
-// summary.js
+// summary.js (หรือ final-summary.js)
 
 const supabaseUrl = 'https://srwjzmtulcuneuqinpgx.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNyd2p6bXR1bGN1bmV1cWlucGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyODc2NjEsImV4cCI6MjEwMjg2MzY2MX0.itJlKOgtoewJpvqhImfLzc5XLlp9lHQuESDTRM2qjYI';
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-// ข้อมูล Mapping อารมณ์ (รูปภาพ และสีข้อความ)
+// ข้อมูลรูปภาพและสีข้อความอารมณ์ (ระดับ 1-5)
 const moodMap = {
     '1': { img: './image/mood01.png', en: '“ Very Sad ”', th: 'เศร้ามาก', color: '#8D99AE' },
     '2': { img: './image/mood02.png', en: '“ Sad ”', th: 'เศร้า', color: '#E07A5F' },
@@ -15,21 +15,17 @@ const moodMap = {
 
 document.addEventListener('DOMContentLoaded', async () => {
     // ----------------------------------------------------
-    // Element References
+    // Element References (ตรงตาม ID ใน HTML)
     // ----------------------------------------------------
-    const backBtn = document.getElementById('backBtn');
     const userAlias = document.getElementById('userAlias');
     const userAvatar = document.getElementById('userAvatar');
     const selectmoodImg = document.getElementById('selectmood');
     const moodTitleEn = document.getElementById('moodTitleEn');
     const moodTitleTh = document.getElementById('moodTitleTh');
-    const questionBox = document.getElementById('questionBox');
-    const cancelBtn = document.getElementById('cancelBtn');
-    const yesBtn = document.getElementById('yesBtn');
     const historyBtn = document.getElementById('historyBtn');
 
     // ----------------------------------------------------
-    // 1. ดึงข้อมูลอารมณ์ที่เลือกจาก SessionStorage
+    // 1. แสดงข้อมูลอารมณ์จาก SessionStorage
     // ----------------------------------------------------
     const selectedLevel = sessionStorage.getItem('selected_mood_level') || '4';
     const currentMood = moodMap[selectedLevel] || moodMap['4'];
@@ -68,30 +64,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ----------------------------------------------------
-    // 3. Event Listeners
+    // 3. Navigation Event
     // ----------------------------------------------------
-    
-    // ปุ่มย้อนกลับ -> กลับไปหน้า reaction.html
-    if (backBtn) {
-        backBtn.addEventListener('click', () => {
-            window.location.href = './reaction.html';
-        });
-    }
-
-    if (cancelBtn) {
-        cancelBtn.addEventListener('click', () => {
-            window.location.href = './final-summary.html';
-        });
-    }
-
-    // ปุ่ม "ตกลง" -> ไปหน้า reflection.html
-    if (yesBtn) {
-        yesBtn.addEventListener('click', () => {
-            window.location.href = './reflection.html';
-        });
-    }
-
-    // ปุ่ม "History of Emotions" -> ไปหน้า history.html
     if (historyBtn) {
         historyBtn.addEventListener('click', () => {
             window.location.href = './history.html';
