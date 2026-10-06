@@ -1,20 +1,17 @@
 // profile.js
 
-// 1. ตั้งค่า Supabase Client
 const supabaseUrl = 'https://srwjzmtulcuneuqinpgx.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNyd2p6bXR1bGN1bmV1cWlucGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyODc2NjEsImV4cCI6MjEwMjg2MzY2MX0.itJlKOgtoewJpvqhImfLzc5XLlp9lHQuESDTRM2qjYI';
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 document.addEventListener('DOMContentLoaded', async () => {
     // ----------------------------------------------------
-    // 2. อ้างอิง Element ต่างๆ จาก HTML ID
+    // 1. อ้างอิง Element ต่างๆ จาก HTML ID
     // ----------------------------------------------------
     const backBtn = document.getElementById('backBtn');
     const logoutBtn = document.getElementById('logoutBtn');
     
     const avatarImg = document.getElementById('avatarImg');
-    const totalMoodImg = document.getElementById('totalMoodImg');
-    
     const userAlias = document.getElementById('userAlias');
     const emailText = document.getElementById('emailText');
     const genderText = document.getElementById('genderText');
@@ -23,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const monthlyCount = document.getElementById('monthlyCount');
 
     // ----------------------------------------------------
-    // 3. Event Listeners (การกดปุ่ม)
+    // 2. Event Listeners
     // ----------------------------------------------------
 
     // ปุ่มย้อนกลับ
@@ -33,7 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // ปุ่มออกจากระบบ (Sign Out จาก Supabase Auth)
+    // ปุ่มออกจากระบบ
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async () => {
             const confirmLogout = confirm('คุณต้องการออกจากระบบใช่หรือไม่?');
@@ -54,11 +51,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ----------------------------------------------------
-    // 4. ฟังก์ชันดึงและแสดงผลข้อมูลผู้ใช้จาก Supabase
+    // 3. ฟังก์ชันดึงและแสดงผลข้อมูลผู้ใช้จาก Supabase
     // ----------------------------------------------------
     async function loadUserProfile() {
         try {
-            // 4.1 ตรวจสอบว่าผู้ใช้ Login อยู่หรือไม่
+            // 3.1 ตรวจสอบสิทธิ์การเข้าสู่ระบบ
             const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
 
             if (authError || !user) {
@@ -70,11 +67,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             // แสดงอีเมลจาก Supabase Auth
             if (emailText) emailText.textContent = user.email;
 
-            // 4.2 ดึงข้อมูลเพิ่มเติมจากตาราง 'User'
+            // 3.2 ดึงข้อมูลส่วนตัวจากตาราง 'users' โดยใช้ user_id
             const { data: userData, error: dbError } = await supabaseClient
-                .from('User')
-                .select('*')
-                .eq('email', user.email)
+                .from('users')
+                .select('nickname, gender, hobbies')
+                .eq('user_id', user.id)
                 .maybeSingle();
 
             if (dbError) {
@@ -82,17 +79,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             if (userData) {
-                // แก้ไขเป็น userData.alias_name ให้ตรงกับชื่อคอลัมน์ใน Supabase
-                if (userAlias) {
-                    userAlias.textContent = userData.alias_name || 'ไม่ได้ตั้งชื่อนามแฝง';
-                }
+                if (userAlias) userAlias.textContent = userData.nickname || 'ไม่ได้ตั้งชื่อนามแฝง';
                 if (genderText) genderText.textContent = userData.gender || 'ไม่ระบุ';
-                if (hobbyText) hobbyText.textContent = userData.hobby || 'ไม่มี';
-                if (avatarImg && userData.avatar_url) avatarImg.src = userData.avatar_url;
+                if (hobbyText) hobbyText.textContent = userData.hobbies || 'ไม่มี';
             }
 
-            // 4.3 ดึงสถิติจำนวน Mood จากตารางบันทึกอารมณ์
-            await loadMoodStats(user.email);
+            // 3.3 ดึงสถิติจำนวน Mood จากตาราง 'daily_entries'
+            await loadMoodStats(user.id);
 
         } catch (err) {
             console.error('Unexpected error loading profile:', err);
@@ -100,15 +93,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ----------------------------------------------------
-    // 5. ฟังก์ชันนับจำนวนการบันทึก Mood ทั้งหมด และประจำเดือน
+    // 4. ฟังก์ชันนับจำนวนการบันทึก Mood ทั้งหมด และประจำเดือน
     // ----------------------------------------------------
-    async function loadMoodStats(userEmail) {
+    async function loadMoodStats(userId) {
         try {
-            // นับจำนวน Mood ทั้งหมด
+            // นับจำนวน Mood ทั้งหมดจาก daily_entries
             const { count: totalCount, error: totalError } = await supabaseClient
-                .from('MoodLog')
+                .from('daily_entries')
                 .select('*', { count: 'exact', head: true })
-                .eq('email', userEmail);
+                .eq('user_id', userId);
 
             if (!totalError && totalCount !== null) {
                 if (totalMood) totalMood.textContent = totalCount;
@@ -116,17 +109,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (totalMood) totalMood.textContent = '0';
             }
 
-            // คำนวณวันแรกและจำนวนวันของเดือนปัจจุบัน
+            // คำนวณวันแรกของเดือน และจำนวนวันทั้งหมดในเดือนปัจจุบัน
             const now = new Date();
-            const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-            const lastDayOfCurrentMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            
+            // Format วันแรกของเดือน YYYY-MM-01
+            const firstDayOfMonth = new Date(year, month, 1).toISOString().split('T')[0];
+            const lastDayOfCurrentMonth = new Date(year, month + 1, 0).getDate();
 
             // นับจำนวนวันที่บันทึกในเดือนนี้
             const { count: monthCount, error: monthError } = await supabaseClient
-                .from('MoodLog')
+                .from('daily_entries')
                 .select('*', { count: 'exact', head: true })
-                .eq('email', userEmail)
-                .gte('created_at', firstDayOfMonth);
+                .eq('user_id', userId)
+                .gte('entry_date', firstDayOfMonth);
 
             if (!monthError && monthCount !== null) {
                 if (monthlyCount) monthlyCount.textContent = `${monthCount}/${lastDayOfCurrentMonth}`;
@@ -135,12 +132,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
         } catch (err) {
-            console.warn('Mood stats table not ready or error:', err.message);
+            console.error('Error loading mood stats:', err);
             if (totalMood) totalMood.textContent = '0';
             if (monthlyCount) monthlyCount.textContent = '0/30';
         }
     }
 
-    // เรียกทำงานเมื่อเปิดหน้าเว็บ
+    // เริ่มทำงานเมื่อโหลดหน้าเว็บ
     loadUserProfile();
 });

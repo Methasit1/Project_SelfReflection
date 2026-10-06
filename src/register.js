@@ -1,4 +1,4 @@
-// 1. ตั้งค่า Supabase Client
+// register.js
 const supabaseUrl = 'https://srwjzmtulcuneuqinpgx.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNyd2p6bXR1bGN1bmV1cWlucGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyODc2NjEsImV4cCI6MjEwMjg2MzY2MX0.itJlKOgtoewJpvqhImfLzc5XLlp9lHQuESDTRM2qjYI';
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -8,115 +8,116 @@ const emailInput = document.getElementById('email');
 const passwordInput = document.getElementById('password');
 const emailError = document.getElementById('emailError');
 const passwordError = document.getElementById('passwordError');
+const submitBtn = document.getElementById('submitBtn');
 const backBtn = document.getElementById('backBtn');
 
-// ฟังก์ชันล้างข้อความแจ้งเตือน
 function clearErrors() {
-    emailError.textContent = '';
-    emailError.classList.add('hidden');
-    passwordError.textContent = '';
-    passwordError.classList.add('hidden');
-}
-
-// ฟังก์ชันแสดงข้อความแจ้งเตือนสีแดง
-function showError(element, message) {
-    element.textContent = message;
-    element.classList.remove('hidden');
-}
-
-// ล้างข้อความแจ้งเตือนอัตโนมัติเมื่อผู้ใช้พิมพ์แก้ไข
-emailInput.addEventListener('input', () => {
-    emailError.textContent = '';
-    emailError.classList.add('hidden');
-});
-
-passwordInput.addEventListener('input', () => {
-    passwordError.textContent = '';
-    passwordError.classList.add('hidden');
-});
-
-registerForm.addEventListener('submit', async function (e) {
-    e.preventDefault();
-    clearErrors();
-
-    const email = emailInput.value.trim();
-    const password = passwordInput.value;
-
-    let hasError = false;
-
-    // 1. ตรวจสอบ Email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email) {
-        showError(emailError, 'กรุณากรอกอีเมล');
-        hasError = true;
-    } else if (!emailRegex.test(email)) {
-        showError(emailError, 'รูปแบบอีเมลไม่ถูกต้อง');
-        hasError = true;
+    if (emailError) {
+        emailError.textContent = '';
+        emailError.classList.add('hidden');
+    }
+    if (emailInput) {
+        emailInput.classList.remove('border-red-500');
+        emailInput.classList.add('border-black');
     }
 
-    // 2. ตรวจสอบ Password (อย่างน้อย 8 ตัวอักษร, มี a-z, A-Z, 0-9)
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
-    if (!password) {
-        showError(passwordError, 'กรุณากรอกรหัสผ่าน');
-        hasError = true;
-    } else if (!passwordRegex.test(password)) {
-        showError(passwordError, 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร และมีตัวพิมพ์เล็ก (a-z) พิมพ์ใหญ่ (A-Z) และตัวเลข (0-9) อย่างละ 1 ตัว');
-        hasError = true;
+    if (passwordError) {
+        passwordError.textContent = '';
+        passwordError.classList.add('hidden');
     }
+    if (passwordInput) {
+        passwordInput.classList.remove('border-red-500');
+        passwordInput.classList.add('border-black');
+    }
+}
 
-    if (hasError) return;
+function showError(inputElement, errorElement, message) {
+    if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.classList.remove('hidden');
+    }
+    if (inputElement) {
+        inputElement.classList.remove('border-black');
+        inputElement.classList.add('border-red-500');
+    }
+}
 
-    try {
-        // 3. สมัครสมาชิกผ่าน Supabase Auth
-        const { data: authData, error: authError } = await supabaseClient.auth.signUp({
-            email: email,
-            password: password,
-        });
+if (emailInput) emailInput.addEventListener('input', clearErrors);
+if (passwordInput) passwordInput.addEventListener('input', clearErrors);
 
-        if (authError) {
-            if (authError.message.includes('User already registered') || authError.message.includes('already exists')) {
-                showError(emailError, 'อีเมลนี้ถูกใช้งานแล้ว กรุณาใช้อีเมลอื่น');
-            } else {
-                showError(emailError, 'เกิดข้อผิดพลาดในการลงทะเบียน: ' + authError.message);
-            }
-            return;
+if (registerForm) {
+    registerForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        clearErrors();
+
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+        let hasError = false;
+
+        // Validation 1: ตรวจสอบอีเมล
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email) {
+            showError(emailInput, emailError, 'กรุณากรอกอีเมล');
+            hasError = true;
+        } else if (!emailRegex.test(email)) {
+            showError(emailInput, emailError, 'รูปแบบอีเมลไม่ถูกต้อง');
+            hasError = true;
         }
 
-        // 4. ดึง user_id ไปบันทึกลงตาราง "User"
-        const userId = authData.user?.id;
+        // Validation 2: ตรวจสอบรหัสผ่าน (อย่างน้อย 8 ตัวอักษร มีตัวพิมพ์เล็ก พิมพ์ใหญ่ และตัวเลข)
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+        if (!password) {
+            showError(passwordInput, passwordError, 'กรุณากรอกรหัสผ่าน');
+            hasError = true;
+        } else if (!passwordRegex.test(password)) {
+            showError(passwordInput, passwordError, 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร มีตัวพิมพ์เล็ก พิมพ์ใหญ่ และตัวเลขอย่างละ 1 ตัว');
+            hasError = true;
+        }
 
-        if (userId) {
-            const { error: profileError } = await supabaseClient
-                .from('User')
-                .insert([
-                    { 
-                        user_id: userId, 
-                        email: email 
-                    }
-                ]);
+        if (hasError) return;
 
-            if (profileError) {
-                showError(emailError, 'เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' + profileError.message);
+        // ล็อกปุ่มกดระหว่างรอส่งข้อมูล
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'กำลังลงทะเบียน...';
+        }
+
+        try {
+            // เรียกใช้เพียง supabase.auth.signUp() 
+            // ตัว Database Trigger (handle_new_user) จะทำการ insert ลงตาราง public.users ให้อัตโนมัติฝั่ง DB
+            const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+                email: email,
+                password: password,
+            });
+
+            if (authError) {
+                showError(emailInput, emailError, 'เกิดข้อผิดพลาด: ' + authError.message);
                 return;
             }
+
+            // ตรวจสอบกรณีอีเมลซ้ำ (Supabase จะไม่โยน Error แต่จะคืนค่า identities เป็น Array ว่าง)
+            if (authData.user && authData.user.identities && authData.user.identities.length === 0) {
+                showError(emailInput, emailError, 'อีเมลนี้ถูกใช้งานแล้ว กรุณาใช้อีเมลอื่น');
+                return;
+            }
+
+            // สมัครสมาชิกสำเร็จ เปลี่ยนหน้าไปยังการตั้งชื่อนามแฝง (aliasname.html)
+            window.location.href = 'aliasname.html';
+
+        } catch (error) {
+            console.error('Registration Error:', error.message);
+            showError(emailInput, emailError, 'เกิดข้อผิดพลาดทางเทคนิค กรุณาลองใหม่อีกครั้ง');
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Sign up';
+            }
         }
+    });
+}
 
-        // บันทึกข้อมูลลง localStorage สำหรับใช้ในหน้า aliasname.html
-        localStorage.setItem('userEmail', email);
-        localStorage.setItem('userId', userId);
-
-        // ย้ายหน้าไปยัง aliasname.html
-        window.location.href = 'aliasname.html';
-
-    } catch (error) {
-        console.error('Registration Error:', error.message);
-        showError(emailError, 'เกิดข้อผิดพลาด: ' + error.message);
-    }
-});
-
-// กลับไปหน้า login
 if (backBtn) {
     backBtn.addEventListener('click', () => {
-        window.location.href = './login.html';
+        window.location.href = 'login.html';
     });
 }

@@ -19,11 +19,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ----------------------------------------------------
     const backBtn = document.getElementById('backBtn');
     const userAlias = document.getElementById('userAlias');
-    const userAvatar = document.getElementById('userAvatar');
     const selectmoodImg = document.getElementById('selectmood');
     const moodTitleEn = document.getElementById('moodTitleEn');
     const moodTitleTh = document.getElementById('moodTitleTh');
-    const questionBox = document.getElementById('questionBox');
     const cancelBtn = document.getElementById('cancelBtn');
     const yesBtn = document.getElementById('yesBtn');
     const historyBtn = document.getElementById('historyBtn');
@@ -45,25 +43,44 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ----------------------------------------------------
-    // 2. ดึงข้อมูลโปรไฟล์ผู้ใช้จาก Supabase
+    // 2. ตรวจสอบการเข้าสู่ระบบ และดึงข้อมูลผู้ใช้จาก Supabase
     // ----------------------------------------------------
-    async function fetchUserData() {
+    async function checkAuthAndFetchUser() {
         try {
-            const { data: sessionData } = await supabaseClient.auth.getSession();
-            if (!sessionData?.session?.user) return;
+            // ตรวจสอบ Auth Session ปัจจุบัน
+            const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
 
-            const { data: userData } = await supabaseClient
-                .from('User')
-                .select('alias_name, avatar_url')
-                .eq('email', sessionData.session.user.email)
+            // ป้องกันผู้ไม่มีบัญชี/ไม่ได้ล็อกอิน ให้ส่งกลับไปหน้า login.html
+            if (authError || !user) {
+                alert('❌ กรุณาเข้าสู่ระบบก่อนใช้งาน');
+                window.location.href = './login.html';
+                return;
+            }
+
+            // แสดง nickname จาก LocalStorage ก่อน
+            const cachedAlias = localStorage.getItem('userAlias');
+            if (cachedAlias && userAlias) {
+                userAlias.textContent = cachedAlias;
+            }
+
+            // ดึงข้อมูลโปรไฟล์จากตาราง users โดยใช้ user_id
+            const { data: userData, error: dbError } = await supabaseClient
+                .from('users')
+                .select('nickname')
+                .eq('user_id', user.id)
                 .maybeSingle();
 
-            if (userData) {
-                if (userAlias && userData.alias_name) userAlias.textContent = userData.alias_name;
-                if (userAvatar && userData.avatar_url) userAvatar.src = userData.avatar_url;
+            if (dbError) {
+                console.error('Error fetching user profile:', dbError.message);
+                return;
+            }
+
+            if (userData && userData.nickname) {
+                if (userAlias) userAlias.textContent = userData.nickname;
+                localStorage.setItem('userAlias', userData.nickname);
             }
         } catch (err) {
-            console.error('Error fetching user profile:', err);
+            console.error('Error in checkAuthAndFetchUser:', err);
         }
     }
 
@@ -78,6 +95,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    // ปุ่ม "ไม่เป็นไร" -> ไปหน้า final-summary.html
     if (cancelBtn) {
         cancelBtn.addEventListener('click', () => {
             window.location.href = './final-summary.html';
@@ -98,5 +116,5 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    fetchUserData();
+    checkAuthAndFetchUser();
 });

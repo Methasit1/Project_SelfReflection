@@ -1,76 +1,124 @@
-// 1. ตั้งค่าการเชื่อมต่อ Supabase
+// aliasname.js
 const supabaseUrl = 'https://srwjzmtulcuneuqinpgx.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNyd2p6bXR1bGN1bmV1cWlucGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyODc2NjEsImV4cCI6MjEwMjg2MzY2MX0.itJlKOgtoewJpvqhImfLzc5XLlp9lHQuESDTRM2qjYI';
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-// 2. ดึงอีเมลที่บันทึกไว้ชั่วคราวจากหน้าลงทะเบียน
-const userEmail = localStorage.getItem('userEmail');
-
-// 🛡️ ป้องกันการเข้าหน้านี้โดยตรงหากยังไม่ได้ลงทะเบียน
-if (!userEmail) {
-    alert('❌ ไม่พบข้อมูลการลงทะเบียน กรุณาลงทะเบียนก่อนครับ');
-    window.location.href = 'register.html';
-}
-
 const aliasForm = document.getElementById('aliasForm');
-const aliasInput = document.getElementById('aliasname');
+const aliasInput = document.getElementById('aliasInput');
 const clearBtn = document.getElementById('clearBtn');
 const charCounter = document.getElementById('charCounter');
+const submitBtn = document.getElementById('submitBtn');
 
-// ตรวจจับการพิมพ์ข้อความ
-aliasInput.addEventListener('input', () => {
-    const currentLength = aliasInput.value.length;
+let currentUser = null;
 
-    if (currentLength > 0) {
-        // 1. อัปเดตตัวเลข และแสดงตัวนับ
-        charCounter.textContent = `${currentLength}/20`;
-        charCounter.classList.remove('hidden');
+// 1. ตรวจสอบว่าผู้ใช้มี Session การเข้าสู่ระบบหรือไม่
+async function checkAuthSession() {
+    const { data: { user }, error } = await supabaseClient.auth.getUser();
 
-        // 2. แสดงปุ่มล้างข้อความ (X)
-        clearBtn.classList.remove('hidden');
-    } else {
-        // 3. ซ่อนตัวนับและปุ่ม X เมื่อช่องพิมพ์ว่างเปล่า
-        charCounter.classList.add('hidden');
-        clearBtn.classList.add('hidden');
-    }
-});
-
-// กดปุ่ม X เพื่อล้างข้อความ
-clearBtn.addEventListener('click', () => {
-    aliasInput.value = '';
-    charCounter.classList.add('hidden');
-    clearBtn.classList.add('hidden');
-    aliasInput.focus();
-});
-
-// ส่งข้อมูลลง Supabase เมื่อกดปุ่ม Next
-aliasForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const aliasName = aliasInput.value.trim();
-
-    if (aliasName === "") {
-        alert('❌ กรุณากรอกชื่อนามแฝงของคุณด้วยครับ');
+    if (error || !user) {
+        alert('❌ ไม่พบเซสชันการเข้าสู่ระบบ กรุณาเข้าสู่ระบบก่อนดำเนินการต่อ');
+        window.location.href = 'login.html';
         return;
     }
 
-    try {
-        // อัปเดต alias_name ลงตาราง User โดยใช้อีเมลเป็นตัวอ้างอิง
-        const { data, error } = await supabaseClient
-            .from('User')
-            .update({ alias_name: aliasName })
-            .eq('email', userEmail);
+    currentUser = user;
+}
 
-        if (error) throw error;
-
-        // 💡 เพิ่มบรรทัดนี้: ฝากชื่อนามแฝงไว้ใช้ในหน้าถัดไป
-        localStorage.setItem('userAlias', aliasName);
-
-        // เปลี่ยนไปหน้าเลือกเพศ
-        window.location.href = 'gender.html';
-
-    } catch (error) {
-        console.error('Update Error:', error.message);
-        alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' + error.message);
+// ดึงชื่อเดิมจาก localStorage มาใส่ใน Input (ถ้ามี)
+function loadSavedAlias() {
+    const savedAlias = localStorage.getItem('userAlias');
+    if (savedAlias && aliasInput) {
+        aliasInput.value = savedAlias;
+        updateInputStatus();
     }
+}
+
+checkAuthSession();
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadSavedAlias();
 });
+
+// 2. ฟังก์ชันอัปเดตสถานะของ ปุ่ม (X) และ ตัวนับจำนวนอักขระ
+function updateInputStatus() {
+    if (!aliasInput) return;
+    
+    const currentLength = aliasInput.value.length;
+
+    if (currentLength > 0) {
+        if (charCounter) {
+            charCounter.textContent = `${currentLength}/20`;
+            charCounter.classList.remove('hidden');
+        }
+        if (clearBtn) clearBtn.classList.remove('hidden');
+    } else {
+        if (charCounter) charCounter.classList.add('hidden');
+        if (clearBtn) clearBtn.classList.add('hidden');
+    }
+}
+
+if (aliasInput) {
+    aliasInput.addEventListener('input', updateInputStatus);
+    aliasInput.addEventListener('keyup', updateInputStatus);
+}
+
+// 3. ปุ่มล้างข้อความ (X)
+if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+        if (aliasInput) {
+            aliasInput.value = '';
+            aliasInput.focus();
+            updateInputStatus();
+        }
+    });
+}
+
+// 4. บันทึกข้อมูล Nickname ลง Supabase และ localStorage
+if (aliasForm) {
+    aliasForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const aliasName = aliasInput ? aliasInput.value.trim() : '';
+
+        if (!aliasName) {
+            alert('❌ กรุณากรอกชื่อนามแฝงของคุณด้วยครับ');
+            return;
+        }
+
+        if (!currentUser) {
+            alert('❌ กรุณาเข้าสู่ระบบก่อนดำเนินการต่อ');
+            window.location.href = 'login.html';
+            return;
+        }
+
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'กำลังบันทึก...';
+        }
+
+        try {
+            // 💡 [เพิ่มจุดนี้] บันทึกลง localStorage ทันที เพื่อให้หน้า gender.html นำไปแสดงผลได้เลย
+            localStorage.setItem('userAlias', aliasName);
+
+            // อัปเดตคอลัมน์ nickname ในตาราง users
+            const { error } = await supabaseClient
+                .from('users')
+                .update({ nickname: aliasName })
+                .eq('user_id', currentUser.id);
+
+            if (error) throw error;
+
+            // บันทึกสำเร็จ เปลี่ยนหน้าไปเลือกเพศ (gender.html)
+            window.location.href = 'gender.html';
+
+        } catch (error) {
+            console.error('Update Nickname Error:', error.message);
+            alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' + error.message);
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Next';
+            }
+        }
+    });
+}

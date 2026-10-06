@@ -21,21 +21,41 @@ document.addEventListener('DOMContentLoaded', async () => {
     const activeClass = "bg-black text-white font-bold text-2xl py-6 px-6 rounded-full w-1/2 hover:scale-105 active:scale-95 transition-all cursor-pointer";
     const inactiveClass = "bg-white text-black border border-gray-200 figma-shadow font-bold text-2xl py-6 px-6 rounded-full w-1/2 hover:scale-105 active:scale-95 transition-all cursor-pointer";
 
-    // 1. ดึงข้อมูลผู้ใช้จาก Supabase
+    // ฟังก์ชันตรวจสอบว่าเป็นช่วงเวลา 00:01 - 05:00 น. หรือไม่
+    function isLateNightWindow() {
+        const now = new Date();
+        const totalMinutes = now.getHours() * 60 + now.getMinutes();
+        // 00:01 = 1 นาที, 05:00 = 300 นาที
+        return totalMinutes >= 1 && totalMinutes <= 300;
+    }
+
+    // 1. ตรวจสอบ Auth และดึงข้อมูลผู้ใช้จาก Supabase
     async function fetchUserData() {
         try {
-            const { data: sessionData } = await supabaseClient.auth.getSession();
-            if (!sessionData?.session?.user) return;
+            const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
 
+            if (authError || !user) {
+                alert('❌ ไม่พบเซสชันการเข้าสู่ระบบ กรุณาเข้าสู่ระบบใหม่');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // แสดงชื่อจาก localStorage ก่อนเพื่อความรวดเร็ว
+            const cachedAlias = localStorage.getItem('userAlias');
+            if (cachedAlias && userAlias) {
+                userAlias.textContent = cachedAlias;
+            }
+
+            // ดึงข้อมูลจริงจากตาราง users (คอลัมน์ nickname) ผ่าน user_id
             const { data: userData } = await supabaseClient
-                .from('User')
-                .select('alias_name, avatar_url')
-                .eq('email', sessionData.session.user.email)
+                .from('users')
+                .select('nickname')
+                .eq('user_id', user.id)
                 .maybeSingle();
 
-            if (userData) {
-                if (userAlias && userData.alias_name) userAlias.textContent = userData.alias_name;
-                if (userAvatar && userData.avatar_url) userAvatar.src = userData.avatar_url;
+            if (userData && userData.nickname) {
+                if (userAlias) userAlias.textContent = userData.nickname;
+                localStorage.setItem('userAlias', userData.nickname);
             }
         } catch (err) {
             console.error('Error fetching user data:', err);
@@ -46,11 +66,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     function updateSelection(type) {
         selectedType = type;
         if (type === 'today') {
-            todayBtn.className = activeClass;
-            prevDayBtn.className = inactiveClass;
+            if (todayBtn) todayBtn.className = activeClass;
+            if (prevDayBtn) prevDayBtn.className = inactiveClass;
         } else if (type === 'previous') {
-            prevDayBtn.className = activeClass;
-            todayBtn.className = inactiveClass;
+            if (prevDayBtn) prevDayBtn.className = activeClass;
+            if (todayBtn) todayBtn.className = inactiveClass;
         }
     }
 
@@ -66,8 +86,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 4. Event Listener สำหรับปุ่ม Start
     if (startBtn) {
         startBtn.addEventListener('click', () => {
+            const lateNight = isLateNightWindow();
+
+            // หากอยู่นอกช่วงเวลา 00:01 - 05:00 น. ให้ถือเป็นวันนี้เสมอ และข้ามไปหน้า selectmood.html ทันที
+            if (!lateNight) {
+                sessionStorage.setItem('record_type', 'today');
+                window.location.href = './selectmood.html';
+                return;
+            }
+
+            // หากอยู่ในช่วงเวลา 00:01 - 05:00 น. ให้แสดงกล่องเลือกวันก่อน
             if (!isCardVisible) {
-                // กดครั้งแรก: แสดงกล่องคำถาม + เล่น Animation ค่อยๆ ลอยขึ้นมา
                 dateChoiceCard.classList.remove('hidden');
                 dateChoiceCard.classList.add('flex');
 
@@ -77,7 +106,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         { opacity: 1, transform: 'translateY(0)' }
                     ],
                     {
-                        duration: 1000,
+                        duration: 400,
                         easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
                         fill: 'forwards'
                     }
@@ -85,7 +114,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 isCardVisible = true;
             } else {
-                // กดครั้งที่สอง (หลังเลือกว่าจะเอาวันไหนแล้ว): บันทึกค่า และเปลี่ยนหน้าไป selectmood.html
+                // กดครั้งที่สองหลังจากเลือกวันแล้ว
                 sessionStorage.setItem('record_type', selectedType);
                 window.location.href = './selectmood.html';
             }

@@ -1,81 +1,72 @@
 // selectmood.js
 
-// 1. ตั้งค่า Supabase Client
 const supabaseUrl = 'https://srwjzmtulcuneuqinpgx.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNyd2p6bXR1bGN1bmV1cWlucGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyODc2NjEsImV4cCI6MjEwMjg2MzY2MX0.itJlKOgtoewJpvqhImfLzc5XLlp9lHQuESDTRM2qjYI';
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+// ฟังก์ชันดึงวันที่ปัจจุบัน รูปแบบ YYYY-MM-DD (ตามเวลาท้องถิ่น)
+function getTodayDate() {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
-    // ----------------------------------------------------
-    // 2. Element Reference
-    // ----------------------------------------------------
     const userAlias = document.getElementById('userAlias');
-    const userAvatar = document.getElementById('userAvatar');
     const backBtn = document.getElementById('backBtn');
     const continueBtn = document.getElementById('continueBtn');
     const moodItems = document.querySelectorAll('.mood-item');
 
     let selectedMoodLevel = null;
+    let currentUser = null;
 
     // ----------------------------------------------------
-    // 3. ดึงข้อมูลผู้ใช้จาก Supabase (ปรับปรุงให้ปลอดภัยขึ้น)
+    // ตรวจสอบการเข้าสู่ระบบ & ดึงข้อมูลผู้ใช้
     // ----------------------------------------------------
-    async function fetchUserData() {
+    async function checkAuthAndFetchUser() {
         try {
-            // เช็ค Session ปัจจุบันก่อน
-            const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
+            const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
 
-            if (sessionError || !sessionData?.session) {
-                console.warn('ไม่พบ Session หรือผู้ใช้ยังไม่ได้เข้าสู่ระบบ');
+            if (authError || !user) {
+                alert('❌ กรุณาเข้าสู่ระบบก่อนใช้งาน');
+                window.location.href = './login.html';
                 return;
             }
 
-            const user = sessionData.session.user;
-            if (!user || !user.email) {
-                console.warn('ไม่พบข้อมูล Email ของผู้ใช้');
-                return;
-            }
+            currentUser = user;
 
-            // ดึงข้อมูล profile จากตาราง User
+            // แสดง Alias จาก Cache เพื่อความเร็ว
+            const cachedAlias = localStorage.getItem('userAlias');
+            if (cachedAlias && userAlias) userAlias.textContent = cachedAlias;
+
+            // ดึงข้อมูลจากตาราง users
             const { data: userData, error: dbError } = await supabaseClient
-                .from('User')
-                .select('alias_name, avatar_url')
-                .eq('email', user.email)
+                .from('users')
+                .select('nickname')
+                .eq('user_id', user.id)
                 .maybeSingle();
 
-            if (dbError) {
-                console.error('Error fetching user profile:', dbError.message);
-                return;
-            }
-
-            if (userData) {
-                if (userAlias && userData.alias_name) {
-                    userAlias.textContent = userData.alias_name;
-                }
-                if (userAvatar && userData.avatar_url) {
-                    userAvatar.src = userData.avatar_url;
-                }
+            if (!dbError && userData?.nickname) {
+                if (userAlias) userAlias.textContent = userData.nickname;
+                localStorage.setItem('userAlias', userData.nickname);
             }
         } catch (err) {
-            console.error('Unexpected error in fetchUserData:', err);
+            console.error('Error in checkAuthAndFetchUser:', err);
         }
     }
 
     // ----------------------------------------------------
-    // 4. ระบบเลือก Mood
+    // เลือก Mood
     // ----------------------------------------------------
     moodItems.forEach(item => {
         item.addEventListener('click', () => {
-            // ถอนคลาส selected จากรูปอื่น
             moodItems.forEach(m => m.classList.remove('selected'));
-
-            // เพิ่มคลาส selected ให้รูปที่กดเลือก
             item.classList.add('selected');
 
-            // บันทึกระดับอารมณ์ (1-5)
             selectedMoodLevel = item.getAttribute('data-level');
 
-            // เปิดการใช้งานปุ่ม Continue สีดำ
             if (continueBtn) {
                 continueBtn.disabled = false;
                 continueBtn.classList.remove('opacity-40', 'cursor-not-allowed');
@@ -85,7 +76,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // ----------------------------------------------------
-    // 5. Navigation Events
+    // Navigation & Save to DB
     // ----------------------------------------------------
     if (backBtn) {
         backBtn.addEventListener('click', () => {
@@ -94,17 +85,42 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (continueBtn) {
-        continueBtn.addEventListener('click', () => {
-            if (!selectedMoodLevel) return;
+        continueBtn.addEventListener('click', async () => {
+            if (!selectedMoodLevel || !currentUser) return;
 
-            // บันทึกอารมณ์ลง SessionStorage
-            sessionStorage.setItem('selected_mood_level', selectedMoodLevel);
+            // ปิดปุ่มชั่วคราวขณะกำลังบันทึก
+            continueBtn.disabled = true;
+            continueBtn.textContent = 'Saving...';
 
-            // ไปยังหน้าถัดไป
-            window.location.href = './trigger.html';
+            try {
+                const today = getTodayDate();
+                const moodVal = parseInt(selectedMoodLevel, 10);
+
+                // 1. เก็บลง SessionStorage
+                sessionStorage.setItem('selected_mood_level', selectedMoodLevel);
+
+                // 2. บันทึกลงตาราง daily_entries ใน Supabase
+                const { error } = await supabaseClient
+                    .from('daily_entries')
+                    .upsert({
+                        user_id: currentUser.id,
+                        entry_date: today,
+                        emotion_level: moodVal,
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: 'user_id, entry_date' });
+
+                if (error) throw error;
+
+                // ไปยัง Step 2
+                window.location.href = './trigger.html';
+            } catch (err) {
+                console.error('Error saving mood:', err.message);
+                alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' + err.message);
+                continueBtn.disabled = false;
+                continueBtn.textContent = 'Continue';
+            }
         });
     }
 
-    // เรียกทำงานฟังก์ชัน
-    fetchUserData();
+    checkAuthAndFetchUser();
 });

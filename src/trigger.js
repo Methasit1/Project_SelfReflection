@@ -1,74 +1,67 @@
 // trigger.js
 
-// 1. ตั้งค่า Supabase Client
 const supabaseUrl = 'https://srwjzmtulcuneuqinpgx.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNyd2p6bXR1bGN1bmV1cWlucGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyODc2NjEsImV4cCI6MjEwMjg2MzY2MX0.itJlKOgtoewJpvqhImfLzc5XLlp9lHQuESDTRM2qjYI';
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+function getTodayDate() {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
-    // ----------------------------------------------------
-    // 2. Element References
-    // ----------------------------------------------------
     const userAlias = document.getElementById('userAlias');
-    const userAvatar = document.getElementById('userAvatar');
     const continueBtn = document.getElementById('continueBtn');
     const triggerInput = document.getElementById('triggerInput');
     const charCounter = document.getElementById('charCounter');
 
     const MAX_CHARS = 200;
+    let currentUser = null;
 
     // ----------------------------------------------------
-    // 3. ดึงข้อมูลผู้ใช้จาก Supabase
+    // ตรวจสอบการเข้าสู่ระบบ & ดึงข้อมูลผู้ใช้
     // ----------------------------------------------------
-    async function fetchUserData() {
+    async function checkAuthAndFetchUser() {
         try {
-            const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
+            const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
 
-            if (sessionError || !sessionData?.session) {
-                console.warn('ไม่พบ Session หรือผู้ใช้ยังไม่ได้เข้าสู่ระบบ');
+            if (authError || !user) {
+                alert('❌ กรุณาเข้าสู่ระบบก่อนใช้งาน');
+                window.location.href = './login.html';
                 return;
             }
 
-            const user = sessionData.session.user;
-            if (!user || !user.email) return;
+            currentUser = user;
+
+            const cachedAlias = localStorage.getItem('userAlias');
+            if (cachedAlias && userAlias) userAlias.textContent = cachedAlias;
 
             const { data: userData, error: dbError } = await supabaseClient
-                .from('User')
-                .select('alias_name, avatar_url')
-                .eq('email', user.email)
+                .from('users')
+                .select('nickname')
+                .eq('user_id', user.id)
                 .maybeSingle();
 
-            if (dbError) {
-                console.error('Error fetching user profile:', dbError.message);
-                return;
-            }
-
-            if (userData) {
-                if (userAlias && userData.alias_name) {
-                    userAlias.textContent = userData.alias_name;
-                }
-                if (userAvatar && userData.avatar_url) {
-                    userAvatar.src = userData.avatar_url;
-                }
+            if (!dbError && userData?.nickname) {
+                if (userAlias) userAlias.textContent = userData.nickname;
+                localStorage.setItem('userAlias', userData.nickname);
             }
         } catch (err) {
-            console.error('Unexpected error:', err);
+            console.error('Error in checkAuthAndFetchUser:', err);
         }
     }
 
     // ----------------------------------------------------
-    // 4. ตรวจจับการพิมพ์ใน Textarea (สูงสุด 50 ตัวอักษร)
+    // ตรวจจับการพิมพ์ข้อความ
     // ----------------------------------------------------
     if (triggerInput) {
         triggerInput.addEventListener('input', () => {
             const textLength = triggerInput.value.length;
-            
-            // อัปเดตตัวนับตัวอักษรให้อยู่ในรูปแบบ 00/300
-            if (charCounter) {
-                charCounter.textContent = `${textLength}/${MAX_CHARS}`;
-            }
+            if (charCounter) charCounter.textContent = `${textLength}/${MAX_CHARS}`;
 
-            // ถ้ามีการพิมพ์อย่างน้อย 1 ตัวอักษร -> ปลดล็อกปุ่ม Continue
             if (textLength > 0) {
                 continueBtn.disabled = false;
                 continueBtn.classList.remove('opacity-40', 'cursor-not-allowed');
@@ -82,21 +75,46 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ----------------------------------------------------
-    // 5. Navigation Event
+    // Save to DB & Next
     // ----------------------------------------------------
     if (continueBtn) {
-        continueBtn.addEventListener('click', () => {
+        continueBtn.addEventListener('click', async () => {
             const triggerText = triggerInput.value.trim();
-            if (!triggerText) return;
+            if (!triggerText || !currentUser) return;
 
-            // บันทึก trigger_text ลง SessionStorage
-            sessionStorage.setItem('trigger_text', triggerText);
+            continueBtn.disabled = true;
+            continueBtn.textContent = 'Saving...';
 
-            // ย้ายไปหน้าถัดไป (reaction.html)
-            window.location.href = './reaction.html';
+            try {
+                const today = getTodayDate();
+                const moodLevel = parseInt(sessionStorage.getItem('selected_mood_level') || '3', 10);
+
+                // 1. เก็บลง SessionStorage
+                sessionStorage.setItem('trigger_text', triggerText);
+
+                // 2. อัปเดตลงตาราง daily_entries
+                const { error } = await supabaseClient
+                    .from('daily_entries')
+                    .upsert({
+                        user_id: currentUser.id,
+                        entry_date: today,
+                        emotion_level: moodLevel,
+                        trigger_text: triggerText,
+                        updated_at: new Date().toISOString()
+                    }, { onConflict: 'user_id, entry_date' });
+
+                if (error) throw error;
+
+                // ไปยัง Step 3
+                window.location.href = './reaction.html';
+            } catch (err) {
+                console.error('Error saving trigger:', err.message);
+                alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' + err.message);
+                continueBtn.disabled = false;
+                continueBtn.textContent = 'Continue';
+            }
         });
     }
 
-    // เรียกทำงานฟังก์ชันดึงโปรไฟล์
-    fetchUserData();
+    checkAuthAndFetchUser();
 });

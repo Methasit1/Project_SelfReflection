@@ -1,24 +1,53 @@
-// 1. ดึงข้อมูล Session จาก localStorage
-const userEmail = localStorage.getItem('userEmail');
-const userAlias = localStorage.getItem('userAlias');
+// welcome.js
+const supabaseUrl = 'https://srwjzmtulcuneuqinpgx.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNyd2p6bXR1bGN1bmV1cWlucGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyODc2NjEsImV4cCI6MjEwMjg2MzY2MX0.itJlKOgtoewJpvqhImfLzc5XLlp9lHQuESDTRM2qjYI';
+const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-// 2. ดักทาง: ถ้าไม่มีข้อมูล ให้ส่งกลับไปหน้า Register / Login
-if (!userEmail || !userAlias) {
-    alert('❌ คุณยังไม่ได้ลงทะเบียน กรุณาเข้าสู่ระบบก่อนครับ');
-    window.location.href = 'register.html';
-} else {
-    // 3. แสดงชื่อผู้ใช้ และใส่ Tooltip เมื่อเอาเมาส์ชี้
-    const aliasElem = document.getElementById('userAlias');
-    if (aliasElem) {
-        aliasElem.textContent = userAlias;
-        aliasElem.title = userAlias; // แสดงชื่อเต็มเมื่อเมาส์ชี้
+// 1. ตรวจสอบ Auth Session และดึงชื่อผู้ใช้มาแสดง
+async function initWelcomePage() {
+    try {
+        const { data: { user }, error } = await supabaseClient.auth.getUser();
+
+        if (error || !user) {
+            alert('❌ ไม่พบเซสชันการเข้าสู่ระบบ กรุณาเข้าสู่ระบบก่อนดำเนินการต่อ');
+            window.location.href = 'login.html';
+            return;
+        }
+
+        const aliasElem = document.getElementById('userAlias');
+        let userAlias = localStorage.getItem('userAlias');
+
+        if (userAlias && aliasElem) {
+            aliasElem.textContent = userAlias;
+            aliasElem.title = userAlias;
+        } else if (aliasElem) {
+            // หากใน localStorage ไม่มี ให้ดึงจากตาราง users ใน Supabase DB
+            const { data } = await supabaseClient
+                .from('users')
+                .select('nickname')
+                .eq('user_id', user.id)
+                .maybeSingle();
+
+            if (data && data.nickname) {
+                aliasElem.textContent = data.nickname;
+                aliasElem.title = data.nickname;
+                localStorage.setItem('userAlias', data.nickname);
+            }
+        }
+    } catch (err) {
+        console.error('Welcome Page Init Error:', err);
     }
 }
 
-// 4. ปุ่มกดเริ่มใช้งาน
+// 2. ปุ่มกดเริ่มใช้งาน (เปลี่ยนหน้าไป Dashboard)
 const startBtn = document.getElementById('startBtn');
 if (startBtn) {
     startBtn.addEventListener('click', () => {
         window.location.href = 'dashboard.html';
     });
 }
+
+// เริ่มทำงานเมื่อโหลด DOM
+document.addEventListener('DOMContentLoaded', () => {
+    initWelcomePage();
+});
