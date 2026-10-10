@@ -13,24 +13,74 @@ document.addEventListener('DOMContentLoaded', async () => {
     const historyBtn = document.getElementById('historyBtn');
     const dateChoiceCard = document.getElementById('dateChoiceCard');
 
-    // ตัวแปรเช็กสถานะการแสดงผลกล่องคำถาม และตัวเลือกวัน
     let isCardVisible = false;
-    let selectedType = 'today';
+    let currentUser = null;
+    let lastEntryDeletedAt = null;
 
-    // Class สไตล์ของปุ่ม ( Active = ดำ / Inactive = ขาว )
-    const activeClass = "bg-black text-white font-bold text-2xl py-6 px-6 rounded-full w-1/2 hover:scale-105 active:scale-95 transition-all cursor-pointer";
-    const inactiveClass = "bg-white text-black border border-gray-200 figma-shadow font-bold text-2xl py-6 px-6 rounded-full w-1/2 hover:scale-105 active:scale-95 transition-all cursor-pointer";
+    // สถานะการบันทึกในฐานข้อมูล
+    let hasTodayEntry = false;
+    let hasPrevEntry = false;
+    let selectedRecordType = 'today';
 
-    // ฟังก์ชันตรวจสอบว่าเป็นช่วงเวลา 00:01 - 05:00 น. หรือไม่
+    // ฟังก์ชันช่วยคำนวณวันที่ในรูปแบบ YYYY-MM-DD
+    function getFormattedDate(offsetDays = 0) {
+        const d = new Date();
+        d.setDate(d.getDate() + offsetDays);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    // ฟังก์ชันตรวจสอบช่วงเวลาตี 00:01 - 05:00 น. (ตาม BR-08)
     function isLateNightWindow() {
         const now = new Date();
         const totalMinutes = now.getHours() * 60 + now.getMinutes();
-        // 00:01 = 1 นาที, 05:00 = 300 นาที
         return totalMinutes >= 1 && totalMinutes <= 300;
     }
 
-    // 1. ตรวจสอบ Auth และดึงข้อมูลผู้ใช้จาก Supabase
-    async function fetchUserData() {
+    // ตรวจสอบ Spam Cooldown 1 นาทีหลังจากการลบบันทึก (BR-01)
+    function checkSpamCooldown() {
+        if (!lastEntryDeletedAt) return true;
+
+        const deletedTime = new Date(lastEntryDeletedAt).getTime();
+        const currentTime = new Date().getTime();
+        const diffSeconds = Math.floor((currentTime - deletedTime) / 1000);
+
+        if (diffSeconds < 60) {
+            const remaining = 60 - diffSeconds;
+            alert(`⏳ คุณเพิ่งลบบันทึกไป กรุณารอ ${remaining} วินาทีก่อนสร้างบันทึกใหม่ครับ`);
+            return false;
+        }
+        return true;
+    }
+
+    // อัปเดตสถานะและการแสดงผลของปุ่มเลือกวัน (กรณีติด Late-Night Window)
+    function updateDateButtonUI() {
+        if (!todayBtn || !prevDayBtn) return;
+
+        const activeClass = 'bg-black text-white font-bold text-2xl py-6 px-6 rounded-full w-1/2 hover:scale-105 active:scale-95 transition-all cursor-pointer';
+        const inactiveClass = 'bg-white text-black border border-gray-200 figma-shadow font-bold text-2xl py-6 px-6 rounded-full w-1/2 hover:scale-105 active:scale-95 transition-all cursor-pointer';
+        const disabledClass = 'bg-gray-100 text-gray-400 border border-gray-200 font-bold text-2xl py-6 px-6 rounded-full w-1/2 opacity-40 cursor-not-allowed pointer-events-none';
+
+        // หากเมื่อวานบันทึกไปแล้ว ให้ปิดปุ่ม "วันก่อนหน้า" ไม่ให้เลือกซ้ำ
+        if (hasPrevEntry) {
+            prevDayBtn.className = disabledClass;
+            todayBtn.className = activeClass;
+            selectedRecordType = 'today';
+        } else {
+            if (selectedRecordType === 'today') {
+                todayBtn.className = activeClass;
+                prevDayBtn.className = inactiveClass;
+            } else {
+                prevDayBtn.className = activeClass;
+                todayBtn.className = inactiveClass;
+            }
+        }
+    }
+
+    // 1. ตรวจสอบสิทธิ์ และเช็กสถานะการบันทึกอารมณ์จาก Supabase
+    async function fetchUserDataAndCheckEntries() {
         try {
             const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
 
@@ -40,63 +90,89 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-            // แสดงชื่อจาก localStorage ก่อนเพื่อความรวดเร็ว
-            const cachedAlias = localStorage.getItem('userAlias');
-            if (cachedAlias && userAlias) {
-                userAlias.textContent = cachedAlias;
-            }
+            currentUser = user;
 
-            // ดึงข้อมูลจริงจากตาราง users (คอลัมน์ nickname) ผ่าน user_id
+            // ดึงข้อมูลส่วนตัวผู้ใช้
             const { data: userData } = await supabaseClient
                 .from('users')
-                .select('nickname')
+                .select('nickname, last_entry_deleted_at')
                 .eq('user_id', user.id)
                 .maybeSingle();
 
-            if (userData && userData.nickname) {
-                if (userAlias) userAlias.textContent = userData.nickname;
-                localStorage.setItem('userAlias', userData.nickname);
+            if (userData) {
+                if (userData.nickname) {
+                    if (userAlias) userAlias.textContent = userData.nickname;
+                    localStorage.setItem('userAlias', userData.nickname);
+                }
+                lastEntryDeletedAt = userData.last_entry_deleted_at;
             }
+
+            // 2. ดึงประวัติการบันทึกของ "วันนี้" และ "เมื่อวาน"
+            const todayStr = getFormattedDate(0);
+            const prevStr = getFormattedDate(-1);
+
+            const { data: entries } = await supabaseClient
+                .from('daily_entries')
+                .select('entry_date')
+                .eq('user_id', user.id)
+                .in('entry_date', [todayStr, prevStr]);
+
+            if (entries && entries.length > 0) {
+                hasTodayEntry = entries.some(e => e.entry_date === todayStr);
+                hasPrevEntry = entries.some(e => e.entry_date === prevStr);
+            }
+
+            // 🟢 [เงื่อนไขหลัก]: หากวันนี้มีบันทึกอารมณ์แล้ว -> บังคับไปหน้า final-summary.html ทันที
+            if (hasTodayEntry) {
+                window.location.href = './final-summary.html';
+                return;
+            }
+
         } catch (err) {
-            console.error('Error fetching user data:', err);
+            console.error('Error fetching user data and entries:', err);
         }
     }
 
-    // 2. ฟังก์ชันสลับดีไซน์ปุ่มเมื่อคลิกเลือกวัน
-    function updateSelection(type) {
-        selectedType = type;
-        if (type === 'today') {
-            if (todayBtn) todayBtn.className = activeClass;
-            if (prevDayBtn) prevDayBtn.className = inactiveClass;
-        } else if (type === 'previous') {
-            if (prevDayBtn) prevDayBtn.className = activeClass;
-            if (todayBtn) todayBtn.className = inactiveClass;
-        }
-    }
-
-    // 3. Event Listeners สำหรับการสลับเลือกปุ่มวัน
+    // 2. Event Listeners ปุ่มเลือกวัน
     if (todayBtn) {
-        todayBtn.addEventListener('click', () => updateSelection('today'));
+        todayBtn.addEventListener('click', () => {
+            selectedRecordType = 'today';
+            updateDateButtonUI();
+        });
     }
 
     if (prevDayBtn) {
-        prevDayBtn.addEventListener('click', () => updateSelection('previous'));
+        prevDayBtn.addEventListener('click', () => {
+            if (hasPrevEntry) return; // ป้องกันการกดเมื่อวานซ้ำ
+            selectedRecordType = 'previous';
+            updateDateButtonUI();
+        });
     }
 
-    // 4. Event Listener สำหรับปุ่ม Start
+    // 3. Event Listener สำหรับปุ่ม Start
     if (startBtn) {
         startBtn.addEventListener('click', () => {
+            if (!checkSpamCooldown()) return;
+
+            // ป้องกันกรณีสลับแท็บ แล้ววันนี้บันทึกไปแล้ว
+            if (hasTodayEntry) {
+                window.location.href = './final-summary.html';
+                return;
+            }
+
             const lateNight = isLateNightWindow();
 
-            // หากอยู่นอกช่วงเวลา 00:01 - 05:00 น. ให้ถือเป็นวันนี้เสมอ และข้ามไปหน้า selectmood.html ทันที
-            if (!lateNight) {
+            // หากอยู่นอกช่วงเวลา 00:01 - 05:00 น. หรือเมื่อวานลงบันทึกเรียบร้อยแล้ว
+            // ให้บันทึกเป็นของ "วันนี้" และเริ่มขั้นตอนถัดไปทันที
+            if (!lateNight || hasPrevEntry) {
                 sessionStorage.setItem('record_type', 'today');
                 window.location.href = './selectmood.html';
                 return;
             }
 
-            // หากอยู่ในช่วงเวลา 00:01 - 05:00 น. ให้แสดงกล่องเลือกวันก่อน
+            // หากอยู่ในช่วงเวลา 00:01 - 05:00 น. และเมื่อวานยังไม่ได้บันทึก
             if (!isCardVisible) {
+                // กด Start ครั้งแรก: แสดงกล่องป๊อปอัพให้เลือกวัน
                 dateChoiceCard.classList.remove('hidden');
                 dateChoiceCard.classList.add('flex');
 
@@ -113,20 +189,31 @@ document.addEventListener('DOMContentLoaded', async () => {
                 );
 
                 isCardVisible = true;
+                updateDateButtonUI();
             } else {
-                // กดครั้งที่สองหลังจากเลือกวันแล้ว
-                sessionStorage.setItem('record_type', selectedType);
+                // กด Start ครั้งที่สอง (หลังเลือกวันแล้ว): เซฟประเภทวันลง sessionStorage แล้วย้ายหน้า
+                sessionStorage.setItem('record_type', selectedRecordType);
                 window.location.href = './selectmood.html';
             }
         });
     }
 
-    // 5. ปุ่ม History
+    // 4. ปุ่ม History
     if (historyBtn) {
         historyBtn.addEventListener('click', () => {
             window.location.href = './history.html';
         });
     }
 
-    fetchUserData();
+    fetchUserDataAndCheckEntries();
+});
+
+// dashboard.js (เพิ่มต่อท้ายไฟล์)
+
+// 🟢 ดักจับเมื่อผู้ใช้กดย้อนกลับมาจากปุ่มของ Browser
+window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+        // หากเป็นการดึงหน้าเดิมมาจาก Cache ให้ดึงข้อมูลและเช็กการบันทึกใหม่ทันที
+        fetchUserDataAndCheckEntries();
+    }
 });

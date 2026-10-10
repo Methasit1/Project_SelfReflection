@@ -10,7 +10,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ----------------------------------------------------
     const backBtn = document.getElementById('backBtn');
     const logoutBtn = document.getElementById('logoutBtn');
-    
+    const historyBtn = document.getElementById('historyBtn'); // อ้างอิงผ่าน ID historyBtn โดยตรง
+
     const avatarImg = document.getElementById('avatarImg');
     const userAlias = document.getElementById('userAlias');
     const emailText = document.getElementById('emailText');
@@ -27,6 +28,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (backBtn) {
         backBtn.addEventListener('click', () => {
             window.history.back();
+        });
+    }
+
+    // ปุ่ม History of Emotions -> ไปหน้าประวัติการบันทึกอารมณ์ (history.html)
+    if (historyBtn) {
+        historyBtn.style.cursor = 'pointer';
+        historyBtn.classList.add('hover:opacity-80', 'transition-all', 'active:scale-95');
+        historyBtn.addEventListener('click', () => {
+            window.location.href = './history.html';
         });
     }
 

@@ -1,5 +1,5 @@
 let currentDate = new Date(); // เดือนที่กำลังแสดงผล
-let selectedDateStr = null;  // วันที่ผู้ใช้คลิกเลือก
+let selectedDateStr = null;  // วันที่ผู้ใช้คลิกเลือก (รูปแบบ YYYY-MM-DD)
 let monthlyRecords = {};     // เก็บข้อมูลบันทึกของเดือนนั้น {"YYYY-MM-DD": recordData}
 
 const monthNamesTh = [
@@ -9,14 +9,19 @@ const monthNamesTh = [
 
 const dayNamesEn = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-// การตั้งค่าชื่อสถานะอารมณ์และสีข้อความ
-const moodConfig = {
-    1: { name: 'Terrible', textClass: 'text-gray-500' },
-    2: { name: 'Down', textClass: 'text-[#E09F67]' },
-    3: { name: 'Neutral', textClass: 'text-[#B3A278]' },
-    4: { name: 'Okay', textClass: 'text-[#68B984]' },
-    5: { name: 'Good', textClass: 'text-[#52B788]' }
+// ข้อมูล Mapping อารมณ์ (รูปภาพ ชื่ออารมณ์ และสีข้อความ)
+const moodMap = {
+    '1': { img: './image/mood01.png', en: 'Very Sad', th: 'เศร้ามาก', color: '#8D99AE' },
+    '2': { img: './image/mood02.png', en: 'Sad', th: 'เศร้า', color: '#E07A5F' },
+    '3': { img: './image/mood03.png', en: 'Neutral', th: 'ปานกลาง', color: '#D4A373' },
+    '4': { img: './image/mood04.png', en: 'Good', th: 'อารมณ์ดี', color: '#A4D1B6' },
+    '5': { img: './image/mood05.png', en: 'Very Good', th: 'อารมณ์ดีมาก', color: '#2A9D8F' }
 };
+
+// แปลงวันที่เป็น String รูปแบบ YYYY-MM-DD
+function formatDateStr(year, month, day) {
+    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
 
 // ดึงข้อมูลจาก Supabase และ Render ปฏิทิน
 async function fetchAndRenderCalendar() {
@@ -34,7 +39,7 @@ async function fetchAndRenderCalendar() {
         const SUPABASE_URL = 'https://srwjzmtulcuneuqinpgx.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNyd2p6bXR1bGN1bmV1cWlucGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyODc2NjEsImV4cCI6MjEwMjg2MzY2MX0.itJlKOgtoewJpvqhImfLzc5XLlp9lHQuESDTRM2qjYI';
         
-        if (window.supabase && SUPABASE_URL !== 'https://srwjzmtulcuneuqinpgx.supabase.co') {
+        if (window.supabase) {
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             const startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
             const lastDay = new Date(year, month + 1, 0).getDate();
@@ -73,14 +78,19 @@ async function fetchAndRenderCalendar() {
             }
         }
     } catch (err) {
-        console.warn('ระบบทำงานในโหมดออฟไลน์ หรือยังไม่ได้ระบุ Supabase URL/Key:', err);
+        console.warn('เกิดข้อผิดพลาดในการดึงข้อมูลจาก Supabase:', err);
     }
 
-    // กำหนดวันที่เลือกเริ่มต้นเป็นวันนี้ (หากยังไม่ได้เลือกวัน)
+    // กำหนดค่าเริ่มต้นของวันที่เลือก
     const now = new Date();
-    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    if (!selectedDateStr) {
-        selectedDateStr = todayStr;
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    if (!selectedDateStr || !selectedDateStr.startsWith(`${year}-${String(month + 1).padStart(2, '0')}`)) {
+        if (year === today.getFullYear() && month === today.getMonth()) {
+            selectedDateStr = formatDateStr(year, month, today.getDate());
+        } else {
+            selectedDateStr = formatDateStr(year, month, 1);
+        }
     }
 
     // 3. วาดตารางปฏิทินและอัปเดตการ์ดข้อมูลฝั่งขวา
@@ -111,7 +121,7 @@ function renderCalendar() {
 
     // 2. วนลูปสร้างการ์ดวันที่ 1 ถึง วันสุดท้ายของเดือน
     for (let day = 1; day <= totalDays; day++) {
-        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const dateStr = formatDateStr(year, month, day);
         const record = monthlyRecords[dateStr];
 
         const thisCellDate = new Date(year, month, day);
@@ -129,10 +139,10 @@ function renderCalendar() {
             cardClasses += 'text-gray-300 opacity-50 pointer-events-none';
         } else {
             // วันอดีต/ปัจจุบัน: กดได้ + มี hover scale
-            cardClasses += 'cursor-pointer hover:scale-95 text-gray-1000';
+            cardClasses += 'cursor-pointer hover:scale-95 text-gray-800';
 
             if (isSelected) {
-                cardClasses += ' ring-2 ring-black/20 bg-gray-100/80';
+                cardClasses += ' ring-2 ring-black/20 bg-gray-100/80 font-bold';
             } else if (isToday) {
                 cardClasses += ' bg-gray-200/40 font-extrabold';
             }
@@ -143,11 +153,11 @@ function renderCalendar() {
         let moodContentHtml = '';
 
         if (record && record.emotion_level && !isFuture) {
-            // วันที่มีการบันทึกอารมณ์
-            const moodImgNum = String(record.emotion_level).padStart(2, '0');
+            // วันที่มีการบันทึกอารมณ์: ดึงรูปภาพจาก moodMap
+            const config = moodMap[String(record.emotion_level)] || moodMap['5'];
             moodContentHtml = `
                 <div class="bg-gray-100 rounded-full size-16 overflow-hidden shadow-sm">
-                    <img id="moodimg" alt="moodimg" src="./image/mood${moodImgNum}.png" class="w-full h-full object-cover"/>
+                    <img id="moodimg" alt="moodimg" src="${config.img}" class="w-full h-full object-cover"/>
                 </div>
             `;
         } else {
@@ -164,7 +174,7 @@ function renderCalendar() {
             ${moodContentHtml}
         `;
 
-        // ผูก Event คลิกเฉพาะวันในอดีตและวันปัจจุบันเท่านั้น (วันอนาคตจะไม่ให้คลิกได้)
+        // ผูก Event คลิกเฉพาะวันในอดีตและวันปัจจุบัน
         if (!isFuture) {
             dayCard.onclick = () => {
                 selectedDateStr = dateStr;
@@ -183,19 +193,17 @@ function renderCalendar() {
 function updateSideDetail(dateStr) {
     if (!dateStr) return;
 
-    // ตรวจสอบไม่ให้อัปเดตเป็นวันในอนาคต
     const parts = dateStr.split('-');
-    const year = parseInt(parts[0]);
-    const month = parseInt(parts[1]) - 1;
-    const day = parseInt(parts[2]);
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
 
     const dateObj = new Date(year, month, day);
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    if (dateObj.getTime() > today.getTime()) {
-        return; // ห้ามดูวันอนาคต
-    }
+    // ป้องกันไม่ให้อัปเดตเป็นวันอนาคต
+    if (dateObj.getTime() > today.getTime()) return;
 
     // 1. อัปเดตตัวเลขวันที่และชื่อวันในสัปดาห์ภาษาอังกฤษ (Sun - Sat)
     const dayNameElem = document.getElementById('dayname');
@@ -216,12 +224,11 @@ function updateSideDetail(dateStr) {
     const record = monthlyRecords[dateStr];
 
     if (record && record.emotion_level) {
-        // มีข้อมูลบันทึกอารมณ์
-        const config = moodConfig[record.emotion_level] || moodConfig[5];
-        const moodImgNum = String(record.emotion_level).padStart(2, '0');
+        // 🟢 มีข้อมูลบันทึกอารมณ์วันนั้น: ดึงค่าจาก moodMap
+        const config = moodMap[String(record.emotion_level)] || moodMap['5'];
 
         if (sideMoodImg) {
-            sideMoodImg.src = `./image/mood${moodImgNum}.png`;
+            sideMoodImg.src = config.img;
             sideMoodImg.classList.remove('hidden');
         }
 
@@ -235,19 +242,24 @@ function updateSideDetail(dateStr) {
         if (timeElem) timeElem.innerText = timeStr;
 
         if (moodNameElem) {
-            moodNameElem.innerText = config.name;
-            moodNameElem.className = `text-6xl font-extrabold mt-8 ${config.textClass}`;
+            moodNameElem.innerText = config.en;
+            moodNameElem.style.color = config.color; // กำหนดสีตาม HEX Color ใน moodMap
+            moodNameElem.className = 'text-6xl font-extrabold mt-8';
         }
 
         if (sideActionBtns) sideActionBtns.classList.remove('hidden');
 
     } else {
-        // ไม่มีข้อมูลบันทึก
-        if (sideMoodImg) sideMoodImg.classList.add('hidden');
+        // 🔴 ไม่มีข้อมูลบันทึกในวันนั้น
+        if (sideMoodImg) {
+            sideMoodImg.classList.add('hidden');
+            sideMoodImg.src = '';
+        }
         
         if (timeElem) timeElem.innerText = '00:00 น.';
         if (moodNameElem) {
             moodNameElem.innerText = 'Mood';
+            moodNameElem.style.color = ''; // เคลียร์ inline color
             moodNameElem.className = 'text-6xl font-extrabold mt-8 text-gray-300';
         }
 
@@ -301,8 +313,8 @@ function setupMonthYearPicker() {
 
     if (applyBtn) {
         applyBtn.onclick = () => {
-            const selectedYear = parseInt(yearSelect.value);
-            const selectedMonth = parseInt(monthSelect.value);
+            const selectedYear = parseInt(yearSelect.value, 10);
+            const selectedMonth = parseInt(monthSelect.value, 10);
 
             currentDate.setFullYear(selectedYear);
             currentDate.setMonth(selectedMonth);
@@ -330,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
         backBtn.onclick = () => window.history.back();
     }
 
-    // ปุ่มเลื่อนเดือน
+    // ปุ่มเลื่อนเดือนย้อนหลัง
     if (prevBtn) {
         prevBtn.onclick = () => {
             currentDate.setMonth(currentDate.getMonth() - 1);
@@ -338,12 +350,12 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    if (nextBtn) {
-        nextBtn.onclick = () => {
-            currentDate.setMonth(currentDate.getMonth() + 1);
-            fetchAndRenderCalendar();
-        };
-    }
+    // ปุ่มเลื่อนเดือนถัดไป
+    if (backBtn) {
+    backBtn.onclick = () => {
+        window.location.href = './dashboard.html';
+    };
+}
 
     // ปุ่มแก้ไข
     if (editBtn) {
@@ -355,35 +367,41 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ปุ่มลบ
+    // ปุ่มลบรายการบันทึก (ปรับปรุงให้ใช้ Stored Procedure delete_daily_entry_with_cooldown)
     if (deleteBtn) {
-        deleteBtn.onclick = async () => {
-            if (selectedDateStr && monthlyRecords[selectedDateStr]) {
-                if (confirm(`คุณต้องการลบบันทึกของวันที่ ${selectedDateStr} ใช่หรือไม่?`)) {
-                    const record = monthlyRecords[selectedDateStr];
-                    try {
-                        const SUPABASE_URL = 'https://srwjzmtulcuneuqinpgx.supabase.co';
-                        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNyd2p6bXR1bGN1bmV1cWlucGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyODc2NjEsImV4cCI6MjEwMjg2MzY2MX0.itJlKOgtoewJpvqhImfLzc5XLlp9lHQuESDTRM2qjYI';
-                        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                        
-                        const { error } = await supabase
-                            .from('daily_entries')
-                            .delete()
-                            .eq('daily_entry_id', record.daily_entry_id);
+    deleteBtn.onclick = async () => {
+        if (selectedDateStr && monthlyRecords[selectedDateStr]) {
+            if (confirm(`คุณต้องการลบบันทึกของวันที่ ${selectedDateStr} ใช่หรือไม่?`)) {
+                const record = monthlyRecords[selectedDateStr];
+                try {
+                    const SUPABASE_URL = 'https://srwjzmtulcuneuqinpgx.supabase.co';
+                    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNyd2p6bXR1bGN1bmV1cWlucGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyODc2NjEsImV4cCI6MjEwMjg2MzY2MX0.itJlKOgtoewJpvqhImfLzc5XLlp9lHQuESDTRM2qjYI';
+                    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) return;
 
-                        if (!error) {
-                            delete monthlyRecords[selectedDateStr];
-                            renderCalendar();
-                            updateSideDetail(selectedDateStr);
-                        } else {
-                            alert('เกิดข้อผิดพลาดในการลบบันทึก: ' + error.message);
-                        }
-                    } catch (err) {
-                        console.error('Delete failed:', err);
+                    // เรียกผ่าน Wrapper Function
+                    const { error } = await supabase.rpc('run_delete_daily_entry_with_cooldown', {
+                        p_user_id: user.id,
+                        p_daily_entry_id: record.daily_entry_id
+                    });
+
+                    if (!error) {
+                        delete monthlyRecords[selectedDateStr];
+                        renderCalendar();
+                        updateSideDetail(selectedDateStr);
+                        alert('ลบบันทึกเรียบร้อยแล้ว');
+                    } else {
+                        alert('ไม่สามารถลบบันทึกได้: ' + error.message);
                     }
+                } catch (err) {
+                    console.error('Delete failed:', err);
                 }
             }
-        };
-    }
+        }
+    };
+}
 
     // เริ่มต้นระบบเลือกเดือนและโหลดข้อมูล
     setupMonthYearPicker();

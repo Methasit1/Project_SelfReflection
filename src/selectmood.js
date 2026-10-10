@@ -4,9 +4,15 @@ const supabaseUrl = 'https://srwjzmtulcuneuqinpgx.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNyd2p6bXR1bGN1bmV1cWlucGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyODc2NjEsImV4cCI6MjEwMjg2MzY2MX0.itJlKOgtoewJpvqhImfLzc5XLlp9lHQuESDTRM2qjYI';
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-// ฟังก์ชันดึงวันที่ปัจจุบัน รูปแบบ YYYY-MM-DD (ตามเวลาท้องถิ่น)
-function getTodayDate() {
+// 🟢 คำนวณวันที่บันทึกจริง โดยเช็กตัวเลือก "วันก่อนหน้า" หรือ "วันนี้"
+function getEntryDate() {
     const d = new Date();
+    const recordType = sessionStorage.getItem('record_type');
+
+    if (recordType === 'previous') {
+        d.setDate(d.getDate() - 1);
+    }
+
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
@@ -37,11 +43,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             currentUser = user;
 
-            // แสดง Alias จาก Cache เพื่อความเร็ว
             const cachedAlias = localStorage.getItem('userAlias');
             if (cachedAlias && userAlias) userAlias.textContent = cachedAlias;
 
-            // ดึงข้อมูลจากตาราง users
             const { data: userData, error: dbError } = await supabaseClient
                 .from('users')
                 .select('nickname')
@@ -88,30 +92,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         continueBtn.addEventListener('click', async () => {
             if (!selectedMoodLevel || !currentUser) return;
 
-            // ปิดปุ่มชั่วคราวขณะกำลังบันทึก
             continueBtn.disabled = true;
             continueBtn.textContent = 'Saving...';
 
             try {
-                const today = getTodayDate();
+                // 🟢 ดึงวันที่ตามตัวเลือกของผู้ใช้ (วันก่อนหน้า หรือ วันนี้)
+                const entryDate = getEntryDate();
                 const moodVal = parseInt(selectedMoodLevel, 10);
 
-                // 1. เก็บลง SessionStorage
+                // 1. เก็บระดับอารมณ์ลง SessionStorage
                 sessionStorage.setItem('selected_mood_level', selectedMoodLevel);
 
-                // 2. บันทึกลงตาราง daily_entries ใน Supabase
+                // 2. บันทึกลงตาราง daily_entries ใน Supabase โดยใช้วันที่ entryDate ที่ถูกต้อง
                 const { error } = await supabaseClient
                     .from('daily_entries')
                     .upsert({
                         user_id: currentUser.id,
-                        entry_date: today,
+                        entry_date: entryDate, // 🟢 ส่งวันที่ถูกต้องเข้า Database
                         emotion_level: moodVal,
                         updated_at: new Date().toISOString()
                     }, { onConflict: 'user_id, entry_date' });
 
                 if (error) throw error;
 
-                // ไปยัง Step 2
+                // ไปยัง Step 2 (trigger.html)
                 window.location.href = './trigger.html';
             } catch (err) {
                 console.error('Error saving mood:', err.message);

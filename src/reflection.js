@@ -4,8 +4,39 @@ const supabaseUrl = 'https://srwjzmtulcuneuqinpgx.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNyd2p6bXR1bGN1bmV1cWlucGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyODc2NjEsImV4cCI6MjEwMjg2MzY2MX0.itJlKOgtoewJpvqhImfLzc5XLlp9lHQuESDTRM2qjYI';
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-function getTodayDate() {
+const DRAFT_TIMEOUT_MS = 15 * 60 * 1000; // 15 นาที (BR-06)
+
+function checkAndHandleDraftTimeout() {
+    const draftTimestamp = sessionStorage.getItem('draft_timestamp');
+    if (draftTimestamp) {
+        const now = Date.now();
+        if (now - parseInt(draftTimestamp, 10) > DRAFT_TIMEOUT_MS) {
+            clearDraftStorage();
+            alert('⏱️ เซสชันทบทวนตนเอง (Step 4) หมดอายุเนื่องจากค้างหน้านานเกิน 15 นาที ระบบได้บันทึกเฉพาะอารมณ์และเหตุการณ์ของคุณไว้แล้ว');
+            window.location.href = './final-summary.html';
+            return true;
+        }
+    }
+    return false;
+}
+
+// 🟢 แก้ไข: ลบเฉพาะข้อความร่าง ไม่ลบ selected_mood_level
+function clearDraftStorage() {
+    sessionStorage.removeItem('trigger_text');
+    sessionStorage.removeItem('reaction_text');
+    sessionStorage.removeItem('draft_timestamp');
+}
+
+function updateDraftTimestamp() {
+    sessionStorage.setItem('draft_timestamp', Date.now().toString());
+}
+
+function getEntryDate() {
     const d = new Date();
+    const recordType = sessionStorage.getItem('record_type');
+    if (recordType === 'previous') {
+        d.setDate(d.getDate() - 1);
+    }
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
@@ -13,98 +44,117 @@ function getTodayDate() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // ----------------------------------------------------
-    // Element References
-    // ----------------------------------------------------
+    if (checkAndHandleDraftTimeout()) return;
+
     const userAlias = document.getElementById('userAlias');
     const questionEn = document.getElementById('question_en');
     const questionTh = document.getElementById('question_th');
-    const finishBtn = document.getElementById('finishBtn');
-    const reflectionInput = document.getElementById('reactionInput'); // ใช้ id reactionInput จาก HTML
+    const reactionInput = document.getElementById('reactionInput');
     const charCounter = document.getElementById('charCounter');
+    const finishBtn = document.getElementById('finishBtn');
 
     const MAX_CHARS = 200;
     let currentUser = null;
-    let currentQuestion = null; // เก็บข้อมูลคำถามที่สุ่มได้
+    let currentQuestion = null;
+    let crisisKeywordsList = [];
+    let debounceTimer = null;
 
-    // ----------------------------------------------------
-    // 1. ตรวจสอบการเข้าสู่ระบบ & ดึงข้อมูลผู้ใช้
-    // ----------------------------------------------------
-    async function checkAuthAndFetchUser() {
+    async function fetchCrisisKeywords() {
+        try {
+            const { data } = await supabaseClient
+                .from('crisis_keywords')
+                .select('keyword')
+                .eq('is_active', true);
+
+            if (data) {
+                crisisKeywordsList = data.map(k => k.keyword.toLowerCase());
+            }
+        } catch (err) {
+            console.error('Error fetching crisis keywords:', err);
+        }
+    }
+
+    function showCrisisSafetyBanner() {
+        if (document.getElementById('crisisBanner')) return;
+
+        const banner = document.createElement('div');
+        banner.id = 'crisisBanner';
+        banner.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-red-600 text-white px-8 py-5 rounded-3xl shadow-2xl flex items-center gap-6 z-50 animate-bounce font-noto';
+        banner.innerHTML = `
+            <div class="flex items-center gap-4">
+                <i class="fa-solid fa-heart-pulse text-4xl"></i>
+                <div>
+                    <h4 class="text-xl font-bold">เราห่วงใยคุณเสมอ</h4>
+                    <p class="text-base">หากรู้สึกไม่ไหว หรือต้องการคนรับฟัง สามารถโทรปรึกษา <strong class="underline">สายด่วนสุขภาพจิต 1323</strong> ได้ฟรีตลอด 24 ชั่วโมง</p>
+                </div>
+            </div>
+            <button type="button" onclick="document.getElementById('crisisBanner').remove()" class="bg-white/20 hover:bg-white/40 text-white px-4 py-2 rounded-full font-bold cursor-pointer transition shrink-0">
+                รับทราบ
+            </button>
+        `;
+        document.body.appendChild(banner);
+    }
+
+    function checkCrisisKeywords(text) {
+        if (!text || crisisKeywordsList.length === 0) return;
+        const lowerText = text.toLowerCase();
+        const hasCrisisWord = crisisKeywordsList.some(kw => lowerText.includes(kw));
+
+        if (hasCrisisWord) {
+            showCrisisSafetyBanner();
+        }
+    }
+
+    async function initPage() {
         try {
             const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-
             if (authError || !user) {
                 alert('❌ กรุณาเข้าสู่ระบบก่อนใช้งาน');
                 window.location.href = './login.html';
                 return;
             }
-
             currentUser = user;
 
-            // แสดง Alias จาก LocalStorage เพื่อความเร็ว
             const cachedAlias = localStorage.getItem('userAlias');
             if (cachedAlias && userAlias) userAlias.textContent = cachedAlias;
 
-            // ดึงข้อมูลผู้ใช้จากตาราง users
-            const { data: userData } = await supabaseClient
-                .from('users')
-                .select('nickname')
-                .eq('user_id', user.id)
-                .maybeSingle();
-
-            if (userData?.nickname) {
-                if (userAlias) userAlias.textContent = userData.nickname;
-                localStorage.setItem('userAlias', userData.nickname);
-            }
-
-            // เมื่อยืนยันตัวตนสำเร็จ ให้ทำการสุ่มคำถาม
-            await getRandomQuestion();
-
+            await fetchCrisisKeywords();
+            await fetchRandomQuestion();
         } catch (err) {
-            console.error('Error in checkAuthAndFetchUser:', err);
+            console.error('Error initializing reflection page:', err);
         }
     }
 
-    // ----------------------------------------------------
-    // 2. เรียกใช้ Database Function สุ่มคำถามจิตวิทยา (PBI-007 / BR-03)
-    // ----------------------------------------------------
-    async function getRandomQuestion() {
+    async function fetchRandomQuestion() {
+        const moodLevel = parseInt(sessionStorage.getItem('selected_mood_level') || '3', 10);
+        
         try {
-            const emotionLevel = parseInt(sessionStorage.getItem('selected_mood_level') || '3', 10);
-
-            // เรียกใช้ RPC Function: get_random_reflection_question
             const { data, error } = await supabaseClient.rpc('get_random_reflection_question', {
                 p_user_id: currentUser.id,
-                p_emotion_level: emotionLevel
+                p_emotion_level: moodLevel
             });
 
             if (error) throw error;
 
             if (data && data.length > 0) {
                 currentQuestion = data[0];
-                
-                // แสดงคำถามบนหน้าจอ
-                if (questionEn) questionEn.textContent = currentQuestion.question_text_en || 'Reflect on your day';
-                if (questionTh) questionTh.textContent = currentQuestion.question_text || 'ถอดบทเรียนจากเหตุการณ์ในวันนี้';
+                if (questionEn) questionEn.textContent = currentQuestion.question_text_en || '';
+                if (questionTh) questionTh.textContent = currentQuestion.question_text || '';
             } else {
-                // Fallback กรณีไม่มีคำถามส่งกลับมา
-                if (questionEn) questionEn.textContent = 'What did today teach you about yourself?';
-                if (questionTh) questionTh.textContent = 'บทเรียนสำคัญที่คุณได้เรียนรู้จากวันนี้คืออะไร?';
+                if (questionTh) questionTh.textContent = 'วันนี้คุณได้เรียนรู้อะไรเกี่ยวกับตัวเองบ้าง?';
+                if (questionEn) questionEn.textContent = 'What did you learn about yourself today?';
             }
         } catch (err) {
-            console.error('Error fetching random question:', err.message);
-            if (questionEn) questionEn.textContent = 'What did today teach you about yourself?';
-            if (questionTh) questionTh.textContent = 'บทเรียนสำคัญที่คุณได้เรียนรู้จากวันนี้คืออะไร?';
+            console.error('Error fetching question:', err);
+            if (questionTh) questionTh.textContent = 'วันนี้คุณได้เรียนรู้อะไรเกี่ยวกับตัวเองบ้าง?';
         }
     }
 
-    // ----------------------------------------------------
-    // 3. ตรวจจับการพิมพ์ข้อความใน Textarea
-    // ----------------------------------------------------
-    if (reflectionInput) {
-        reflectionInput.addEventListener('input', () => {
-            const textLength = reflectionInput.value.length;
+    if (reactionInput) {
+        reactionInput.addEventListener('input', () => {
+            const text = reactionInput.value;
+            const textLength = text.length;
+
             if (charCounter) charCounter.textContent = `${textLength}/${MAX_CHARS}`;
 
             if (textLength > 0) {
@@ -116,49 +166,48 @@ document.addEventListener('DOMContentLoaded', async () => {
                 finishBtn.classList.add('opacity-40', 'cursor-not-allowed');
                 finishBtn.classList.remove('opacity-100', 'cursor-pointer');
             }
+
+            updateDraftTimestamp();
+
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                checkCrisisKeywords(text);
+            }, 300);
         });
     }
 
-    // ----------------------------------------------------
-    // 4. บันทึกข้อมูล Step 4 ผ่าน Stored Procedure (save_complete_reflection)
-    // ----------------------------------------------------
     if (finishBtn) {
         finishBtn.addEventListener('click', async () => {
-            const reflectionText = reflectionInput.value.trim();
+            const reflectionText = reactionInput.value.trim();
             if (!reflectionText || !currentUser) return;
 
             finishBtn.disabled = true;
             finishBtn.textContent = 'Saving...';
 
             try {
-                const today = getTodayDate();
+                const entryDate = getEntryDate();
                 const moodLevel = parseInt(sessionStorage.getItem('selected_mood_level') || '3', 10);
                 const triggerText = sessionStorage.getItem('trigger_text') || '';
                 const reactionText = sessionStorage.getItem('reaction_text') || '';
 
-                const questionId = currentQuestion?.question_id || null;
-                const questionSnapshot = currentQuestion?.question_text || 'คำถามสะท้อนคิดประจำวัน';
+                if (currentQuestion) {
+                    const { error } = await supabaseClient.rpc('run_save_complete_reflection', {
+                        p_user_id: currentUser.id,
+                        p_entry_date: entryDate,
+                        p_emotion_level: moodLevel,
+                        p_trigger_text: triggerText,
+                        p_reaction_text: reactionText,
+                        p_question_id: currentQuestion.question_id,
+                        p_question_snapshot: currentQuestion.question_text,
+                        p_reflection_text: reflectionText
+                    });
 
-                // เรียกใช้ Stored Procedure: save_complete_reflection
-                const { error } = await supabaseClient.rpc('save_complete_reflection', {
-                    p_user_id: currentUser.id,
-                    p_entry_date: today,
-                    p_emotion_level: moodLevel,
-                    p_trigger_text: triggerText,
-                    p_reaction_text: reactionText,
-                    p_question_id: questionId,
-                    p_question_snapshot: questionSnapshot,
-                    p_reflection_text: reflectionText
-                });
+                    if (error) throw error;
+                }
 
-                if (error) throw error;
+                clearDraftStorage();
 
-                // เมื่อสำเร็จ บันทึกสถานะว่าทำ Step 4 แล้ว เคลียร์ร่างชั่วคราว
-                sessionStorage.setItem('reflection_text', reflectionText);
-
-                // ย้ายไปหน้าสรุปสุดท้าย
                 window.location.href = './final-summary.html';
-
             } catch (err) {
                 console.error('Error saving reflection:', err.message);
                 alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' + err.message);
@@ -168,5 +217,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    checkAuthAndFetchUser();
+    setInterval(checkAndHandleDraftTimeout, 10000);
+
+    initPage();
 });
