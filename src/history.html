@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - MOOD</title>
+    <link href="./output.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        .font-noto {
+            font-family: "Noto Sans Thai", sans-serif;
+        }
+
+        .figma-shadow {
+            box-shadow: 0px 4px 13px 0px rgba(0, 0, 0, 0.10);
+        }
+
+        .card-border-shadow {
+            box-shadow: 0px 8px 20px 0px rgba(0, 0, 0, 0.08);
+        }
+
+        @media (max-height: 1000px) {
+            body {
+                padding: 1.25rem !important;
+            }
+
+            .main-container {
+                gap: 2.5rem !important;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-[#FBF9F8] min-h-screen p-10 select-none font-noto">
+
+    <!-- Header -->
+    <header class="flex justify-between">
+        <!-- ปุ่มย้อนกลับ -->
+        <button type="button" id="backBtn"
+            class="flex items-center gap-3 text-gray-700 hover:text-black transition-colors cursor-pointer text-2xl font-medium">
+            <i class="fa-regular fa-circle-left text-4xl"></i>
+            <span>ย้อนกลับ</span>
+        </button>
+        <!--logo mood-->
+        <img src="./image/logo.png" alt="MOOD Logo" class="w-[320px] h-16 object-contain">
+        <!-- รูปโปรไฟล์ -->
+        <div class="size-20 bg-white rounded-full ml-10">
+            <a href="./profile.html" id="profileBtn" title="ไปหน้าโปรไฟล์"
+                class="block size-20 rounded-full overflow-hidden bg-gray-300 hover:opacity-80 transition-opacity cursor-pointer border-2 border-white shadow-sm">
+                <img id="userAvatar" src="./image/avatar.png" alt="Profile" class="w-full h-full object-cover" />
+            </a>
+        </div>
+    </header>
+
+    <main class="flex w-full h-full mt-4 pl-5">
+        <!--ปฎิทิน-->
+        <div class="bg-white rounded-4xl w-1/2 h-full p-5 figma-shadow">
+            <!-- Header: ชื่อเดือน, ปุ่มวันนี้ และ ปุ่มกดเปลี่ยนเดือน -->
+            <div class="flex items-center justify-between mb-6 px-5">
+                <button id="prevBtn" title="เดือนก่อนหน้า"
+                    class="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-100 hover:text-black transition-all shadow-sm active:scale-95 cursor-pointer">
+                    <i class="fa-solid fa-chevron-left text-lg"></i>
+                </button>
+
+                <!-- หัวข้อเดือน/ปี สามารถคลิกเพื่อเลือกเดือน/ปี ได้ -->
+                <div id="monthYearBtn" title="คลิกเพื่อเลือกเดือนและปี"
+                    class="flex items-center gap-2 px-4 py-1.5 rounded-2xl hover:bg-gray-100 transition-all cursor-pointer group">
+                    <h2 id="monthYearTitle" class="text-3xl font-bold text-gray-800">--</h2>
+                    <i class="fa-solid fa-caret-down text-xl text-gray-400 group-hover:text-black transition-colors"></i>
+                </div>
+
+                <button id="nextBtn" title="เดือนถัดไป"
+                    class="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-100 hover:text-black transition-all shadow-sm active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed">
+                    <i class="fa-solid fa-chevron-right text-lg"></i>
+                </button>
+            </div>
+
+            <!-- หัวตารางวัน Sun-Sat -->
+            <div class="grid grid-cols-7 text-center text-3xl font-bold border-b-2 pb-2 text-gray-800">
+                <div>Sun</div>
+                <div>Mon</div>
+                <div>Tue</div>
+                <div>Wed</div>
+                <div>Thu</div>
+                <div>Fri</div>
+                <div>Sat</div>
+            </div>
+
+            <!-- Grid ตารางปฏิทิน (จัด 7 คอลัมน์เพื่อความเป๊ะของวัน) -->
+            <div id="calendarGrid" class="grid grid-cols-7 gap-y-4 mt-2"></div>
+        </div>
+
+        <!--ข้อมูล วันที่ที่สนใจ ฝั่งขวา-->
+        <div class=" flex gap-10 w-1/2 pl-10 pt-20">
+            <h1 class="flex flex-col gap-y-2 justify-center items-center text-8xl text-black/20 font-bold h-72">
+                11
+                <div id="dayname" class="text-4xl">Sat</div>
+            </h1>
+            <div class="flex bg-white justify-around w-full h-72 figma-shadow p-8 rounded-4xl gap-10">
+                <div class="bg-gray-100 size-52 rounded-full">
+                    <img id="sideMoodImg" src="" alt="Mood" class="w-full h-full object-cover hidden" />
+                </div>
+
+                <div class="flex flex-col justify-center text-gray-300">
+                    <h2 id="time" class="text-2xl font-bold">00:00 น.</h2>
+                    <h1 id="moodname" class="text-6xl font-extrabold mt-8">Mood</h1>
+                </div>
+
+                <!-- ฝั่งขวาของการ์ด: ปุ่มแก้ไข และ ปุ่มลบ (แสดงเฉพาะเมื่อมีข้อมูล) -->
+                <div id="sideActionBtns" class="flex flex-col justify-center gap-5 hidden">
+                    <button id="editBtn" title="แก้ไข" class="size-20 rounded-full bg-black text-white flex items-center justify-center hover:bg-gray-800 transition shadow cursor-pointer">
+                        <i class="fa-solid fa-pen text-3xl"></i>
+                    </button>
+                    <button id="deleteBtn" title="ลบ" class="size-20 rounded-full bg-[#D98282] text-white flex items-center justify-center hover:bg-red-600 transition shadow cursor-pointer">
+                        <i class="fa-solid fa-trash text-3xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal เลือกเดือนและปี -->
+    <div id="monthYearModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-3xl p-6 w-80 shadow-2xl border border-gray-100 flex flex-col gap-5">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="text-xl font-bold text-gray-800">เลือกเดือนและปี</h3>
+                <button id="closeModalBtn" class="text-gray-400 hover:text-black text-2xl font-bold cursor-pointer">&times;</button>
+            </div>
+            
+            <div class="flex flex-col gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">ปี (พ.ศ.)</label>
+                    <select id="yearSelect" class="w-full border border-gray-200 rounded-xl p-2.5 text-lg font-bold bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black cursor-pointer">
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-600 mb-1">เดือน</label>
+                    <select id="monthSelect" class="w-full border border-gray-200 rounded-xl p-2.5 text-lg font-bold bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black cursor-pointer">
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex gap-2 mt-2">
+                <button id="cancelModalBtn" class="flex-1 py-2.5 border border-gray-300 rounded-xl text-gray-700 font-semibold hover:bg-gray-100 transition cursor-pointer">ยกเลิก</button>
+                <button id="applyMonthYearBtn" class="flex-1 py-2.5 bg-black text-white rounded-xl font-semibold hover:bg-gray-800 transition cursor-pointer">ตกลง</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="./history.js"></script>
+</body>
+
+</html>
