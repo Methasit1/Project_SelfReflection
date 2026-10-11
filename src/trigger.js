@@ -9,7 +9,7 @@ function checkAndHandleDraftTimeout() {
         const now = Date.now();
         if (now - parseInt(draftTimestamp, 10) > DRAFT_TIMEOUT_MS) {
             clearDraftStorage();
-            alert('⏱️ เซสชันร่างข้อความหมดอายุเนื่องจากไม่มีการเคลื่อนไหวนานเกิน 15 นาที กรุณาเริ่มบันทึกใหม่อีกครั้ง');
+            alert('⏱️ เซสชันร่างข้อความหมดอายุเนื่องจากไม่มีการเคลื่อนไหวนานเกิน 15 นาที ระบบได้ล้างข้อมูลเพื่อเริ่มบันทึกใหม่อีกครั้ง');
             window.location.href = './dashboard.html';
             return true;
         }
@@ -17,8 +17,10 @@ function checkAndHandleDraftTimeout() {
     return false;
 }
 
-// 🟢 แก้ไข: ลบเฉพาะข้อความร่าง ไม่ลบ selected_mood_level
+// 🟢 แก้ไข: ล้างข้อมูลทั้งหมดใน Session เพื่อให้เริ่มทำใหม่ตั้งแต่เลือกอารมณ์
 function clearDraftStorage() {
+    sessionStorage.removeItem('selected_mood_level');
+    sessionStorage.removeItem('record_type');
     sessionStorage.removeItem('trigger_text');
     sessionStorage.removeItem('reaction_text');
     sessionStorage.removeItem('draft_timestamp');
