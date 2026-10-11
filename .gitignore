@@ -10,3 +10,7 @@ node_modules/
 .DS_Store
 Thumbs.db
 *.log
+
+# Ignore sensitive config
+config.js
+src/config.js
