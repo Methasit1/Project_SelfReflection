@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Self-Reflection</title>
+    <link href="./output.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        .font-noto { font-family: "Noto Sans Thai", sans-serif; }
+        .figma-shadow { box-shadow: 0px 0px 13px 0px rgba(0, 0, 0, 0.15); }
+    </style>
+</head>
+
+<body class="bg-[#F4EBD0]/30 min-h-screen p-10 select-none font-noto">
+
+    <!-- Header -->
+    <header class="flex justify-between">
+        <button type="button" id="backBtn"
+            class="flex items-center gap-3 text-gray-700 hover:text-black transition-colors cursor-pointer text-2xl font-medium">
+            <i class="fa-regular fa-circle-left text-4xl"></i>
+            <span>ย้อนกลับ</span>
+        </button>
+        <img src="./image/logo.png" alt="MOOD Logo" class="w-[320px] h-16 object-contain">
+        <div class="size-20 bg-white rounded-full ml-10">
+            <a href="./profile.html" id="profileBtn" title="ไปหน้าโปรไฟล์"
+                class="block size-20 rounded-full overflow-hidden bg-gray-300 hover:opacity-80 transition-opacity cursor-pointer border-2 border-white shadow-sm">
+                <img id="userAvatar" src="./image/avatar.png" alt="Profile" class="w-full h-full object-cover" />
+            </a>
+        </div>
+    </header>
+
+    <main class="flex w-full h-full">
+        <!-- รูปภาพอารมณ์ฝั่งซ้าย -->
+        <div class="flex flex-col gap-y-16 justify-center items-center w-1/2 pt-20 sticky top-10 self-start">
+            <img alt="moodimg" id="moodimg" src="" class="size-[500px] bg-gray-100 rounded-full"/>
+            <h1 id="moodname_en" class="flex flex-col gap-y-5 text-7xl font-bold">
+                Moodname...
+                <span id="moodname_th" class="flex justify-center text-4xl font-medium">ชื่ออารมณ์...</span>
+            </h1>
+        </div>
+
+        <!-- ข้อมูลฝั่งขวา -->
+        <div class="flex flex-col w-1/2 items-center pt-20">
+            <h1 id="entryDateTitle" class="text-6xl font-bold leading-tight">-- ---------- ----</h1>
+            <h1 class="text-3xl font-semibold text-black leading-tight heading-title mt-8">
+                Alrighty, <span id="userAlias">Aliasname</span>
+            </h1>
+            <h2 id="question_en" class="text-3xl font-semibold text-black mt-1 heading-title text-center px-6">
+                Loading...
+            </h2>
+            <p id="question_th" class="text-3xl font-normal text-black mt-6 heading-sub text-center px-6">
+                กำลังโหลดข้อมูล...
+            </p>
+
+            <!-- Text Box (Read-only) -->
+            <div class="px-16 w-full h-full mt-10">
+                <textarea id="entryTextarea" readonly placeholder="ไม่มีข้อมูล..." 
+                class="rounded-4xl figma-shadow w-full h-80 p-10 text-2xl placeholder-gray-400 bg-transparent border-2 pr-16 textarea-box disabled:opacity-80 cursor-default select-none"></textarea>
+            </div>
+
+            <!-- Buttons (มีแค่ปุ่มเลื่อนซ้าย-ขวา) -->
+            <div class="flex gap-8 justify-center mt-8">
+                <div class="flex gap-5">
+                    <button id="prevStepBtn" type="button" class="size-20 rounded-full bg-black text-white flex items-center justify-center hover:opacity-80 transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-chevron-left text-3xl"></i>
+                    </button>
+                    <button id="nextStepBtn" type="button" class="size-20 rounded-full bg-black text-white flex items-center justify-center hover:opacity-80 transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-chevron-right text-3xl"></i>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="./view.js"></script>
+</body>
+
+</html>
