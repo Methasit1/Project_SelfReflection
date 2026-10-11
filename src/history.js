@@ -1,5 +1,8 @@
 // history.js
 
+// 🟢 ดึง Supabase Client ที่ถูกสร้างไว้แล้วจาก config.js
+const supabaseClient = window.supabaseClient;
+
 let currentDate = new Date(); // เดือนที่กำลังแสดงผล
 let selectedDateStr = null;  // วันที่ผู้ใช้คลิกเลือก (รูปแบบ YYYY-MM-DD)
 let monthlyRecords = {};     // เก็บข้อมูลบันทึกของเดือนนั้น {"YYYY-MM-DD": recordData}
@@ -38,18 +41,15 @@ async function fetchAndRenderCalendar() {
 
     // 2. ดึงข้อมูลบันทึกประจำเดือนจากตาราง daily_entries
     try {
-        const SUPABASE_URL = 'https://srwjzmtulcuneuqinpgx.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNyd2p6bXR1bGN1bmV1cWlucGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyODc2NjEsImV4cCI6MjEwMjg2MzY2MX0.itJlKOgtoewJpvqhImfLzc5XLlp9lHQuESDTRM2qjYI';
-        
-        if (window.supabase) {
-            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const client = supabaseClient || window.supabaseClient;
+        if (client) {
             const startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
             const lastDay = new Date(year, month + 1, 0).getDate();
             const endDate = `${year}-${String(month + 1).padStart(2, '0')}-${lastDay}`;
 
-            const { data: { user } } = await supabase.auth.getUser();
+            const { data: { user } } = await client.auth.getUser();
             if (user) {
-                const { data: records, error } = await supabase
+                const { data: records, error } = await client
                     .from('daily_entries')
                     .select(`
                         daily_entry_id,
@@ -224,7 +224,7 @@ function updateSideDetail(dateStr) {
             sideMoodImg.src = config.img;
             sideMoodImg.classList.remove('hidden');
 
-            // 🟢 เพิ่มการคลิกรูปภาพอารมณ์เพื่อเปิดดูหน้า view.html
+            // เพิ่มการคลิกรูปภาพอารมณ์เพื่อเปิดดูหน้า view.html
             const imgContainer = sideMoodImg.parentElement;
             if (imgContainer) {
                 imgContainer.style.cursor = 'pointer';
@@ -379,7 +379,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const diffMinutes = Math.floor((now.getTime() - recordTime) / (1000 * 60));
 
                 if (diffMinutes > 30) {
-                    alert('⏱️ ไม่สามารถแก้ไขบันทึกนี้ได้ เนื่องจากล่วงเลยกำหนดเวลา 30 นาทีแล้ว ระบบจะนำคุณไปที่หน้าดูรายละเอียด');
+                    alert('⏱️ ไม่สามารถแก้ไขบันทึกนี้ได้ เนื่องจากล่วงเลยกำหนดเวลา 30 นาทีแล้ว (BR-05) ระบบจะนำคุณไปที่หน้าดูรายละเอียด');
                     window.location.href = `./view.html?entry_id=${record.daily_entry_id}`;
                     return;
                 }
@@ -396,7 +396,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (selectedDateStr && monthlyRecords[selectedDateStr]) {
                 const record = monthlyRecords[selectedDateStr];
 
-                // 🟢 1. ตรวจสอบเงื่อนไขวันบันทึกย้อนหลัง (BR-05)
                 const now = new Date();
                 const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
@@ -404,20 +403,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 const diffHours = (now.getTime() - createdTime) / (1000 * 60 * 60);
 
                 if (record.entry_date < todayStr || diffHours > 24) {
-                    alert('⏱️ ไม่สามารถลบบันทึกย้อนหลังได้ เนื่องจากผ่านไปแล้ว 1 วัน (เกินกำหนด 24 ชั่วโมง)');
+                    alert('⏱️ ไม่สามารถลบบันทึกย้อนหลังได้ เนื่องจากผ่านไปแล้ว 1 วัน (เกินกำหนด 24 ชั่วโมงตาม BR-05)');
                     return;
                 }
 
                 if (confirm(`คุณต้องการลบบันทึกของวันที่ ${selectedDateStr} ใช่หรือไม่?`)) {
                     try {
-                        const SUPABASE_URL = 'https://srwjzmtulcuneuqinpgx.supabase.co';
-                        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNyd2p6bXR1bGN1bmV1cWlucGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyODc2NjEsImV4cCI6MjEwMjg2MzY2MX0.itJlKOgtoewJpvqhImfLzc5XLlp9lHQuESDTRM2qjYI';
-                        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                        const client = supabaseClient || window.supabaseClient;
+                        if (!client) return;
                         
-                        const { data: { user } } = await supabase.auth.getUser();
+                        const { data: { user } } = await client.auth.getUser();
                         if (!user) return;
 
-                        const { error } = await supabase.rpc('run_delete_daily_entry_with_cooldown', {
+                        const { error } = await client.rpc('run_delete_daily_entry_with_cooldown', {
                             p_user_id: user.id,
                             p_daily_entry_id: record.daily_entry_id
                         });

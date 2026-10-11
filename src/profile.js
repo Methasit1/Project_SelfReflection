@@ -1,8 +1,5 @@
 // profile.js
-
-const supabaseUrl = 'https://srwjzmtulcuneuqinpgx.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNyd2p6bXR1bGN1bmV1cWlucGd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyODc2NjEsImV4cCI6MjEwMjg2MzY2MX0.itJlKOgtoewJpvqhImfLzc5XLlp9lHQuESDTRM2qjYI';
-const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+const supabaseClient = window.supabaseClient;
 
 document.addEventListener('DOMContentLoaded', async () => {
     // ----------------------------------------------------
@@ -10,7 +7,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ----------------------------------------------------
     const backBtn = document.getElementById('backBtn');
     const logoutBtn = document.getElementById('logoutBtn');
-    const historyBtn = document.getElementById('historyBtn'); // อ้างอิงผ่าน ID historyBtn โดยตรง
+    const historyBtn = document.getElementById('historyBtn');
 
     const avatarImg = document.getElementById('avatarImg');
     const userAlias = document.getElementById('userAlias');
@@ -40,74 +37,73 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // ปุ่มออกจากระบบ
+    // ปุ่ม Logout
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async () => {
-            const confirmLogout = confirm('คุณต้องการออกจากระบบใช่หรือไม่?');
-            if (confirmLogout) {
+            if (confirm('คุณต้องการออกจากระบบหรือไม่?')) {
                 try {
-                    const { error } = await supabaseClient.auth.signOut();
-                    if (error) throw error;
-
+                    await supabaseClient.auth.signOut();
                     localStorage.clear();
                     sessionStorage.clear();
                     window.location.href = './login.html';
-                } catch (error) {
-                    console.error('Error logging out:', error.message);
-                    alert('เกิดข้อผิดพลาดในการออกจากระบบ: ' + error.message);
+                } catch (err) {
+                    console.error('Error logging out:', err);
+                    alert('เกิดข้อผิดพลาดในการออกจากระบบ');
                 }
             }
         });
     }
 
     // ----------------------------------------------------
-    // 3. ฟังก์ชันดึงและแสดงผลข้อมูลผู้ใช้จาก Supabase
+    // 3. ดึงข้อมูล User & สถิติอารมณ์จาก Supabase
     // ----------------------------------------------------
     async function loadUserProfile() {
         try {
-            // 3.1 ตรวจสอบสิทธิ์การเข้าสู่ระบบ
             const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
 
             if (authError || !user) {
-                alert('กรุณาเข้าสู่ระบบก่อนใช้งาน');
+                alert('❌ กรุณาเข้าสู่ระบบก่อนใช้งาน');
                 window.location.href = './login.html';
                 return;
             }
 
-            // แสดงอีเมลจาก Supabase Auth
-            if (emailText) emailText.textContent = user.email;
+            // แสดง Email
+            if (emailText) emailText.textContent = user.email || '-';
 
-            // 3.2 ดึงข้อมูลส่วนตัวจากตาราง 'users' โดยใช้ user_id
+            // ดึงข้อมูลจากตาราง users
             const { data: userData, error: dbError } = await supabaseClient
                 .from('users')
                 .select('nickname, gender, hobbies')
                 .eq('user_id', user.id)
                 .maybeSingle();
 
-            if (dbError) {
-                console.error('Error fetching user details:', dbError.message);
+            if (!dbError && userData) {
+                if (userAlias) userAlias.textContent = userData.nickname || 'Alias';
+                if (genderText) genderText.textContent = userData.gender || '-';
+                if (hobbyText) hobbyText.textContent = userData.hobbies || '-';
+
+                // เซฟลง localStorage สำรอง
+                if (userData.nickname) localStorage.setItem('userAlias', userData.nickname);
+                if (userData.gender) localStorage.setItem('userGender', userData.gender);
+                if (userData.hobbies) localStorage.setItem('userHobby', userData.hobbies);
+            } else {
+                // ดึงจาก localStorage สำรองหาก DB มีปัญหา
+                if (userAlias) userAlias.textContent = localStorage.getItem('userAlias') || 'Alias';
+                if (genderText) genderText.textContent = localStorage.getItem('userGender') || '-';
+                if (hobbyText) hobbyText.textContent = localStorage.getItem('userHobby') || '-';
             }
 
-            if (userData) {
-                if (userAlias) userAlias.textContent = userData.nickname || 'ไม่ได้ตั้งชื่อนามแฝง';
-                if (genderText) genderText.textContent = userData.gender || 'ไม่ระบุ';
-                if (hobbyText) hobbyText.textContent = userData.hobbies || 'ไม่มี';
-            }
-
-            // 3.3 ดึงสถิติจำนวน Mood จากตาราง 'daily_entries'
+            // โหลดสถิติการบันทึกอารมณ์
             await loadMoodStats(user.id);
 
         } catch (err) {
-            console.error('Unexpected error loading profile:', err);
+            console.error('Error loading profile:', err);
         }
     }
 
-    // ----------------------------------------------------
-    // 4. ฟังก์ชันนับจำนวนการบันทึก Mood ทั้งหมด และประจำเดือน
-    // ----------------------------------------------------
     async function loadMoodStats(userId) {
         try {
-            // นับจำนวน Mood ทั้งหมดจาก daily_entries
+            // นับจำนวนอารมณ์ทั้งหมดที่เคยบันทึก
             const { count: totalCount, error: totalError } = await supabaseClient
                 .from('daily_entries')
                 .select('*', { count: 'exact', head: true })
@@ -124,8 +120,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             const year = now.getFullYear();
             const month = now.getMonth();
             
-            // Format วันแรกของเดือน YYYY-MM-01
-            const firstDayOfMonth = new Date(year, month, 1).toISOString().split('T')[0];
+            // 🟢 กำหนดรูปแบบวันที่เป็น YYYY-MM-01 โดยตรงเพื่อป้องกันปัญหาโซนเวลา UTC
+            const firstDayOfMonth = `${year}-${String(month + 1).padStart(2, '0')}-01`;
             const lastDayOfCurrentMonth = new Date(year, month + 1, 0).getDate();
 
             // นับจำนวนวันที่บันทึกในเดือนนี้
@@ -148,6 +144,5 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // เริ่มทำงานเมื่อโหลดหน้าเว็บ
     loadUserProfile();
 });
