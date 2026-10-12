@@ -379,7 +379,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const diffMinutes = Math.floor((now.getTime() - recordTime) / (1000 * 60));
 
                 if (diffMinutes > 30) {
-                    alert('⏱️ ไม่สามารถแก้ไขบันทึกนี้ได้ เนื่องจากล่วงเลยกำหนดเวลา 30 นาทีแล้ว (BR-05) ระบบจะนำคุณไปที่หน้าดูรายละเอียด');
+                    alert('ไม่สามารถแก้ไขบันทึกนี้ได้ เนื่องจากล่วงเลยกำหนดเวลา 30 นาทีแล้ว ระบบจะนำคุณไปที่หน้าดูรายละเอียด');
                     window.location.href = `./view.html?entry_id=${record.daily_entry_id}`;
                     return;
                 }
@@ -403,7 +403,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const diffHours = (now.getTime() - createdTime) / (1000 * 60 * 60);
 
                 if (record.entry_date < todayStr || diffHours > 24) {
-                    alert('⏱️ ไม่สามารถลบบันทึกย้อนหลังได้ เนื่องจากผ่านไปแล้ว 1 วัน (เกินกำหนด 24 ชั่วโมงตาม BR-05)');
+                    alert('ไม่สามารถลบบันทึกย้อนหลังได้ เนื่องจากผ่านไปแล้ว 1 วัน (เกินกำหนด 24 ชั่วโมงตาม)');
                     return;
                 }
 
