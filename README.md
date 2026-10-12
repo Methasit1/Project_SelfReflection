@@ -34,7 +34,7 @@
 
 ## เทคโนโลยีที่ใช้ (Tech Stack)
 
-- **Frontend:** Next.js / React, Tailwind CSS
+- **Frontend:** HTML/JAVASCRIPT, Tailwind CSS
 - **Backend & Database:** Supabase (PostgreSQL 16+)
 - **Authentication:** Supabase Auth
 - **Deployment:** Vercel / Netlify
