@@ -390,20 +390,20 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // ปุ่มลบรายการบันทึก (พร้อมตัวดักจับ 24 ชม. / วันก่อนหน้า BR-05)
+    // ปุ่มลบรายการบันทึก (เช็กเฉพาะอายุบันทึกไม่เกิน 24 ชม. จริงจากเวลาสร้าง)
     if (deleteBtn) {
         deleteBtn.onclick = async () => {
             if (selectedDateStr && monthlyRecords[selectedDateStr]) {
                 const record = monthlyRecords[selectedDateStr];
 
                 const now = new Date();
-                const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-
+                // ดึงเวลาจริงที่สร้างบันทึก (created_at)
                 const createdTime = record.created_at ? new Date(record.created_at).getTime() : new Date(record.entry_date).getTime();
                 const diffHours = (now.getTime() - createdTime) / (1000 * 60 * 60);
 
-                if (record.entry_date < todayStr || diffHours > 24) {
-                    alert('ไม่สามารถลบบันทึกย้อนหลังได้ เนื่องจากผ่านไปแล้ว 1 วัน (เกินกำหนด 24 ชั่วโมงตาม)');
+                // 🟢 เช็กเฉพาะกรณีที่เวลาสร้างจนถึงปัจจุบันเกิน 24 ชั่วโมงเต็มเท่านั้น
+                if (diffHours > 24) {
+                    alert('ไม่สามารถลบบันทึกนี้ได้ เนื่องจากผ่านไปแล้วเกิน 24 ชั่วโมงนับจากเวลาที่บันทึก');
                     return;
                 }
 
